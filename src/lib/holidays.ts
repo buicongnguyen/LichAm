@@ -1,4 +1,6 @@
 import type { CountryCode, Holiday, LunarDate } from "../types";
+import { addDays } from "./date";
+import { solarToLunar } from "./vietnameseLunar";
 
 export const countryNames: Record<CountryCode, string> = {
   VN: "Việt Nam",
@@ -42,7 +44,6 @@ const solarRules: SolarRule[] = [
 const lunarRules: LunarRule[] = [
   { country: "VN", month: 1, day: 1, label: "Tết Nguyên đán" },
   { country: "VN", month: 1, day: 2, label: "Tết Nguyên đán" },
-  { country: "VN", month: 1, day: 3, label: "Tết Nguyên đán" },
   { country: "VN", month: 3, day: 10, label: "Giỗ Tổ Hùng Vương" },
   { country: "VN", month: 8, day: 15, label: "Tết Trung thu", type: "observance" },
   { country: "VN", month: 12, day: 23, label: "Ông Công Ông Táo", type: "observance" },
@@ -51,6 +52,15 @@ const lunarRules: LunarRule[] = [
   { country: "KR", month: 8, day: 15, label: "Chuseok" },
 ];
 
+function isVietnameseLunarNewYearEve(date: Date, lunar: LunarDate) {
+  if (lunar.isLeap || lunar.month !== 12) {
+    return false;
+  }
+
+  const tomorrow = solarToLunar(addDays(date, 1));
+  return !tomorrow.isLeap && tomorrow.month === 1 && tomorrow.day === 1 && tomorrow.year === lunar.year + 1;
+}
+
 export function getHolidays(date: Date, lunar: LunarDate, country: CountryCode): Holiday[] {
   const solarMatches = solarRules.filter(
     (rule) => rule.country === country && rule.month === date.getMonth() + 1 && rule.day === date.getDate(),
@@ -58,8 +68,12 @@ export function getHolidays(date: Date, lunar: LunarDate, country: CountryCode):
   const lunarMatches = lunarRules.filter(
     (rule) => rule.country === country && rule.month === lunar.month && rule.day === lunar.day && !lunar.isLeap,
   );
+  const tetEveMatches: LunarRule[] =
+    country === "VN" && isVietnameseLunarNewYearEve(date, lunar)
+      ? [{ country: "VN", month: lunar.month, day: lunar.day, label: "Tết Nguyên đán" }]
+      : [];
 
-  return [...solarMatches, ...lunarMatches].map((rule) => ({
+  return [...solarMatches, ...lunarMatches, ...tetEveMatches].map((rule) => ({
     id: `${rule.country}-${rule.label}-${rule.month}-${rule.day}`,
     label: rule.label,
     country: rule.country,
