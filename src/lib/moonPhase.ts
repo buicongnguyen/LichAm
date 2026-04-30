@@ -15,14 +15,15 @@ export function getMoonPhase(lunarDay: number): MoonPhase {
   const day = Math.max(1, Math.min(30, lunarDay));
   const fullMoonDay = 15;
   const distanceFromFull = Math.min(Math.abs(day - fullMoonDay), Math.abs(day + 30 - fullMoonDay));
-  const illumination = Math.max(0, Math.cos((distanceFromFull / fullMoonDay) * (Math.PI / 2)));
+  const rawIllumination = Math.max(0, Math.cos((distanceFromFull / fullMoonDay) * (Math.PI / 2)));
+  const isFull = day === fullMoonDay;
+  const illumination = isFull ? 1 : Math.min(rawIllumination, 0.9);
   const litPercent = Math.round(illumination * 100);
   const visualScale = 0.5 + illumination * 0.5;
   const waxing = day <= fullMoonDay;
-  const isFull = illumination >= 0.96;
 
   let kind: MoonPhaseKind = "new";
-  if (litPercent >= 92) {
+  if (isFull) {
     kind = "full";
   } else if (litPercent >= 67) {
     kind = "three-quarter";

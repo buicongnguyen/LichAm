@@ -259,6 +259,7 @@ function App() {
                     hasHoliday ? "holiday-day" : "",
                     isSunday ? "sunday-day" : "",
                     isSaturday ? "saturday-day" : "",
+                    moonPhase.isFull ? "full-moon-day" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}

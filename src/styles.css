@@ -326,6 +326,17 @@ input {
   color: #8f1d18;
 }
 
+.day-cell.full-moon-day .lunar-number {
+  border-color: #ef9b24;
+  background: #fff0b8;
+  color: #994600;
+  box-shadow: 0 0 0 2px rgba(239, 155, 36, 0.16);
+}
+
+.day-cell.full-moon-day .moon-light {
+  fill: #f3a42d;
+}
+
 .day-numbers {
   position: relative;
   z-index: 1;
