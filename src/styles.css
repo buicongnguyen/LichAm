@@ -662,9 +662,23 @@ input {
   padding: 18px;
 }
 
-.selected-summary span {
+.selected-date-line {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.selected-date-line span {
   color: #667673;
   font-size: 0.9rem;
+  font-weight: 760;
+  text-transform: capitalize;
+}
+
+.selected-date-line small {
+  color: #667673;
+  font-size: 0.82rem;
 }
 
 .selected-summary strong {
@@ -672,6 +686,32 @@ input {
   margin-top: 4px;
   color: #0f6b5f;
   font-size: 1.18rem;
+}
+
+.selected-day-names {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.selected-day-chip,
+.selected-day-empty {
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 0.82rem;
+  font-weight: 760;
+}
+
+.selected-day-chip {
+  border: 1px solid rgba(239, 155, 36, 0.42);
+  color: #8a391f;
+  background: #fff7dd;
+}
+
+.selected-day-empty {
+  color: #75817e;
+  background: #f1f4f3;
 }
 
 .detail-section {

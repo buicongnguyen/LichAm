@@ -30,6 +30,7 @@ const todayIso = toISODate(today);
 const vietnameseWeekdays = ["2", "3", "4", "5", "6", "7", "CN"];
 const vietnameseMonthFormatter = new Intl.DateTimeFormat("vi-VN", { month: "long", year: "numeric" });
 const vietnameseShortMonthFormatter = new Intl.DateTimeFormat("vi-VN", { month: "short" });
+const vietnameseWeekdayFormatter = new Intl.DateTimeFormat("vi-VN", { weekday: "long" });
 
 type ViewMode = "month" | "year";
 
@@ -85,7 +86,15 @@ function App() {
   const selectedCell = cells.find((cell) => cell.isoDate === selectedDate);
   const selectedIndex = cells.findIndex((cell) => cell.isoDate === selectedDate);
   const selectedWeekIndex = selectedIndex >= 0 ? Math.floor(selectedIndex / 7) : -1;
-  const selectedLunar = solarToLunar(parseISODate(selectedDate));
+  const selectedDateObject = parseISODate(selectedDate);
+  const selectedWeekdayName = vietnameseWeekdayFormatter.format(selectedDateObject);
+  const selectedLunar = solarToLunar(selectedDateObject);
+  const selectedDayNames = [
+    selectedLunar.day === 1 ? "Mùng 1 âm lịch" : null,
+    selectedLunar.day === 15 ? "Rằm" : null,
+    ...(selectedCell?.holidays.map((holiday) => holiday.label) ?? []),
+    ...(selectedCell?.memories.map((memory) => memory.title) ?? []),
+  ].filter((name): name is string => Boolean(name));
   const yearMonths = useMemo(
     () =>
       Array.from({ length: 12 }, (_, month) => {
@@ -329,31 +338,24 @@ function App() {
 
         <aside className="detail-panel">
           <div className="selected-summary">
-            <span>{selectedDate}</span>
+            <div className="selected-date-line">
+              <span>{selectedWeekdayName}</span>
+              <small>{selectedDate}</small>
+            </div>
             <strong>
               Âm lịch {selectedLunar.day}/{selectedLunar.month}/{selectedLunar.year}
               {selectedLunar.isLeap ? " nhuận" : ""}
             </strong>
-          </div>
-
-          <div className="detail-section">
-            <h2>Ngày đã chọn</h2>
-            <div className="event-list">
-              {selectedCell && selectedCell.holidays.length === 0 && selectedCell.memories.length === 0 ? (
-                <p className="empty-state">Chưa có ngày ghi nhớ.</p>
-              ) : null}
-              {selectedCell?.holidays.map((holiday) => (
-                <div className="event-row holiday-row" key={holiday.id}>
-                  <span>{holiday.label}</span>
-                  <small>{countryNames[holiday.country]}</small>
-                </div>
-              ))}
-              {selectedCell?.memories.map((memory) => (
-                <div className="event-row" key={memory.id}>
-                  <span>{memory.title}</span>
-                  <small>{calendarKindLabel(memory.calendarKind)}</small>
-                </div>
-              ))}
+            <div className="selected-day-names">
+              {selectedDayNames.length > 0 ? (
+                selectedDayNames.map((name, index) => (
+                  <span className="selected-day-chip" key={`${name}-${index}`}>
+                    {name}
+                  </span>
+                ))
+              ) : (
+                <span className="selected-day-empty">Không có ghi chú</span>
+              )}
             </div>
           </div>
 
