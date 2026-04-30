@@ -170,6 +170,11 @@ export function solarToLunar(date: Date): LunarDate {
   };
 }
 
+export function solarLongitudeDegreesAtVietnamMidnight(date: Date) {
+  const dayNumber = jdFromDate(date.getDate(), date.getMonth() + 1, date.getFullYear());
+  return (sunLongitude(dayNumber - 0.5 - TIME_ZONE / 24) * 180) / Math.PI;
+}
+
 export function lunarToSolar(lunarDay: number, lunarMonth: number, lunarYear: number, isLeap: boolean) {
   let a11: number;
   let b11: number;

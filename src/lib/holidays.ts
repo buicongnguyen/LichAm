@@ -1,6 +1,6 @@
 import type { CountryCode, Holiday, LunarDate } from "../types";
 import { addDays } from "./date";
-import { solarToLunar } from "./vietnameseLunar";
+import { solarLongitudeDegreesAtVietnamMidnight, solarToLunar } from "./vietnameseLunar";
 
 export const countryNames: Record<CountryCode, string> = {
   VN: "Việt Nam",
@@ -24,6 +24,11 @@ type LunarRule = {
   type?: Holiday["type"];
 };
 
+type SolarTermRule = {
+  longitude: number;
+  label: string;
+};
+
 const solarRules: SolarRule[] = [
   { country: "VN", month: 1, day: 1, label: "Tết Dương lịch" },
   { country: "VN", month: 4, day: 30, label: "Ngày Thống nhất" },
@@ -44,13 +49,41 @@ const solarRules: SolarRule[] = [
 const lunarRules: LunarRule[] = [
   { country: "VN", month: 1, day: 1, label: "Tết Nguyên đán" },
   { country: "VN", month: 1, day: 2, label: "Tết Nguyên đán" },
+  { country: "VN", month: 1, day: 15, label: "Tết Nguyên tiêu / Rằm tháng Giêng", type: "observance" },
+  { country: "VN", month: 3, day: 3, label: "Tết Hàn thực", type: "observance" },
   { country: "VN", month: 3, day: 10, label: "Giỗ Tổ Hùng Vương" },
-  { country: "VN", month: 8, day: 15, label: "Tết Trung thu", type: "observance" },
+  { country: "VN", month: 4, day: 15, label: "Lễ Phật Đản", type: "observance" },
+  { country: "VN", month: 5, day: 5, label: "Tết Đoan ngọ", type: "observance" },
+  { country: "VN", month: 7, day: 15, label: "Vu Lan / Rằm tháng Bảy", type: "observance" },
+  { country: "VN", month: 8, day: 15, label: "Tết Trung thu / Rằm tháng Tám", type: "observance" },
   { country: "VN", month: 12, day: 23, label: "Ông Công Ông Táo", type: "observance" },
   { country: "KR", month: 1, day: 1, label: "Seollal" },
   { country: "KR", month: 4, day: 8, label: "Buddha's Birthday" },
   { country: "KR", month: 8, day: 15, label: "Chuseok" },
 ];
+
+const vietnameseSeasonTerms: SolarTermRule[] = [
+  { longitude: 315, label: "Lập xuân" },
+  { longitude: 0, label: "Xuân phân" },
+  { longitude: 45, label: "Lập hạ" },
+  { longitude: 90, label: "Hạ chí" },
+  { longitude: 135, label: "Lập thu" },
+  { longitude: 180, label: "Thu phân" },
+  { longitude: 225, label: "Lập đông" },
+  { longitude: 270, label: "Đông chí" },
+];
+
+function normalizeDegrees(value: number) {
+  return ((value % 360) + 360) % 360;
+}
+
+function solarTermStartsOnDate(date: Date, longitude: number) {
+  const start = solarLongitudeDegreesAtVietnamMidnight(date);
+  const end = solarLongitudeDegreesAtVietnamMidnight(addDays(date, 1));
+  const daySpan = normalizeDegrees(end - start);
+  const targetOffset = normalizeDegrees(longitude - start);
+  return targetOffset <= daySpan;
+}
 
 function isVietnameseLunarNewYearEve(date: Date, lunar: LunarDate) {
   if (lunar.isLeap || lunar.month !== 12) {
@@ -68,12 +101,24 @@ export function getHolidays(date: Date, lunar: LunarDate, country: CountryCode):
   const lunarMatches = lunarRules.filter(
     (rule) => rule.country === country && rule.month === lunar.month && rule.day === lunar.day && !lunar.isLeap,
   );
+  const solarTermMatches: SolarRule[] =
+    country === "VN"
+      ? vietnameseSeasonTerms
+          .filter((term) => solarTermStartsOnDate(date, term.longitude))
+          .map((term) => ({
+            country: "VN",
+            month: date.getMonth() + 1,
+            day: date.getDate(),
+            label: term.label,
+            type: "observance",
+          }))
+      : [];
   const tetEveMatches: LunarRule[] =
     country === "VN" && isVietnameseLunarNewYearEve(date, lunar)
       ? [{ country: "VN", month: lunar.month, day: lunar.day, label: "Tết Nguyên đán" }]
       : [];
 
-  return [...solarMatches, ...lunarMatches, ...tetEveMatches].map((rule) => ({
+  return [...solarMatches, ...solarTermMatches, ...lunarMatches, ...tetEveMatches].map((rule) => ({
     id: `${rule.country}-${rule.label}-${rule.month}-${rule.day}`,
     label: rule.label,
     country: rule.country,
