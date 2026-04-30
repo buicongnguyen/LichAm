@@ -1,6 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
-  Bell,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -9,28 +8,26 @@ import {
   Settings,
   Trash2,
 } from "lucide-react";
+import { LotusFrame } from "./components/LotusFrame";
 import { MoonPhaseIcon } from "./components/MoonPhaseIcon";
 import type { CalendarCell, CalendarKind, CountryCode, MemoryDay } from "./types";
 import { buildCalendarMonth } from "./lib/calendar";
-import { monthLabel, parseISODate, toISODate, weekdayLabels } from "./lib/date";
+import { parseISODate, toISODate } from "./lib/date";
 import { countryNames } from "./lib/holidays";
 import { getMoonPhase } from "./lib/moonPhase";
 import {
   createMemoryDay,
   findNextOccurrence,
-  getDueReminderKeys,
   loadMemoryDays,
-  loadNotifiedKeys,
   saveMemoryDays,
-  saveNotifiedKeys,
 } from "./lib/memoryDays";
 import { downloadCalendarFile } from "./lib/ics";
 import { solarToLunar } from "./lib/vietnameseLunar";
 
 const today = new Date();
 const todayIso = toISODate(today);
-const initialNotificationPermission = (): NotificationPermission =>
-  "Notification" in window ? Notification.permission : "default";
+const vietnameseWeekdays = ["2", "3", "4", "5", "6", "7", "CN"];
+const vietnameseMonthFormatter = new Intl.DateTimeFormat("vi-VN", { month: "long", year: "numeric" });
 
 type MemoryFormState = {
   title: string;
@@ -63,6 +60,10 @@ function normalizeMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+function calendarKindLabel(kind: CalendarKind) {
+  return kind === "lunar" ? "Âm lịch" : "Dương lịch";
+}
+
 function App() {
   const [country, setCountry] = useState<CountryCode>("VN");
   const [monthDate, setMonthDate] = useState(() => normalizeMonth(today));
@@ -70,44 +71,16 @@ function App() {
   const [memoryDays, setMemoryDays] = useState<MemoryDay[]>(() => loadMemoryDays());
   const [isAddingMemory, setIsAddingMemory] = useState(false);
   const [form, setForm] = useState<MemoryFormState>(() => createInitialForm(todayIso, "VN"));
-  const [notificationState, setNotificationState] = useState<NotificationPermission>(initialNotificationPermission);
 
   useEffect(() => {
     saveMemoryDays(memoryDays);
   }, [memoryDays]);
-
-  useEffect(() => {
-    if (notificationState !== "granted") {
-      return;
-    }
-
-    const notified = new Set(loadNotifiedKeys());
-    const due = getDueReminderKeys(memoryDays, new Date()).filter((item) => !notified.has(item.key));
-
-    if (due.length === 0) {
-      return;
-    }
-
-    navigator.serviceWorker?.ready
-      .then((registration) => {
-        due.forEach(({ memory, occurrence, offset, key }) => {
-          registration.showNotification(memory.title, {
-            body: `${offset} day${offset === 1 ? "" : "s"} before ${toISODate(occurrence)}`,
-            tag: key,
-          });
-          notified.add(key);
-        });
-        saveNotifiedKeys([...notified]);
-      })
-      .catch(() => undefined);
-  }, [memoryDays, notificationState]);
 
   const cells = useMemo(() => buildCalendarMonth(monthDate, country, memoryDays), [monthDate, country, memoryDays]);
   const selectedCell = cells.find((cell) => cell.isoDate === selectedDate);
   const selectedIndex = cells.findIndex((cell) => cell.isoDate === selectedDate);
   const selectedWeekIndex = selectedIndex >= 0 ? Math.floor(selectedIndex / 7) : -1;
   const selectedLunar = solarToLunar(parseISODate(selectedDate));
-  const weekdayNames = useMemo(() => weekdayLabels(1), []);
 
   const upcomingMemories = useMemo(
     () =>
@@ -146,15 +119,6 @@ function App() {
     setIsAddingMemory(false);
   }
 
-  async function requestNotifications() {
-    if (!("Notification" in window)) {
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    setNotificationState(permission);
-  }
-
   function deleteMemory(id: string) {
     setMemoryDays((current) => current.filter((memory) => memory.id !== id));
   }
@@ -172,65 +136,42 @@ function App() {
         <div className="brand">
           <CalendarDays aria-hidden="true" />
           <div>
-            <h1>Lich Am</h1>
-            <p>Solar and lunar calendar</p>
+            <h1>Lịch Âm</h1>
+            <p>Lịch dương và lịch âm</p>
           </div>
         </div>
 
         <div className="top-actions">
           <button className="primary-action" type="button" onClick={() => openMemoryForm()}>
             <Plus aria-hidden="true" />
-            <span>Memory day</span>
+            <span>Ngày ghi nhớ</span>
           </button>
-          <button className="icon-button" type="button" onClick={requestNotifications} aria-label="Enable reminders">
-            <Bell aria-hidden="true" />
-          </button>
-          <details className="settings-menu">
-            <summary aria-label="Open settings">
-              <Settings aria-hidden="true" />
-            </summary>
-            <div className="settings-panel">
-              <label>
-                Country holidays
-                <select
-                  aria-label="Holiday country"
-                  value={country}
-                  onChange={(event) => setCountry(event.target.value as CountryCode)}
-                >
-                  {Object.entries(countryNames).map(([code, label]) => (
-                    <option key={code} value={code}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </details>
         </div>
       </header>
 
       <section className="workspace">
         <div className="calendar-surface">
+          <LotusFrame />
           <div className="calendar-toolbar">
-            <button className="icon-button" type="button" onClick={() => changeMonth(-1)} aria-label="Previous month">
+            <button className="icon-button" type="button" onClick={() => changeMonth(-1)} aria-label="Tháng trước">
               <ChevronLeft aria-hidden="true" />
             </button>
             <div className="month-title">
-              <strong>{monthLabel(monthDate)}</strong>
+              <strong>{vietnameseMonthFormatter.format(monthDate)}</strong>
               <span>
-                {selectedDate} · Lunar {selectedLunar.day}/{selectedLunar.month}
+                {selectedDate} · Âm lịch {selectedLunar.day}/{selectedLunar.month}
               </span>
             </div>
-            <button className="icon-button" type="button" onClick={() => changeMonth(1)} aria-label="Next month">
+            <button className="icon-button" type="button" onClick={() => changeMonth(1)} aria-label="Tháng sau">
               <ChevronRight aria-hidden="true" />
             </button>
             <button className="today-button" type="button" onClick={jumpToToday}>
-              Today
+              Hôm nay
             </button>
           </div>
 
           <div className="weekday-row">
-            {weekdayNames.map((day) => (
+            {vietnameseWeekdays.map((day) => (
               <div key={day}>{day}</div>
             ))}
           </div>
@@ -288,16 +229,16 @@ function App() {
           <div className="selected-summary">
             <span>{selectedDate}</span>
             <strong>
-              Lunar {selectedLunar.day}/{selectedLunar.month}/{selectedLunar.year}
-              {selectedLunar.isLeap ? " leap" : ""}
+              Âm lịch {selectedLunar.day}/{selectedLunar.month}/{selectedLunar.year}
+              {selectedLunar.isLeap ? " nhuận" : ""}
             </strong>
           </div>
 
           <div className="detail-section">
-            <h2>Selected day</h2>
+            <h2>Ngày đã chọn</h2>
             <div className="event-list">
               {selectedCell && selectedCell.holidays.length === 0 && selectedCell.memories.length === 0 ? (
-                <p className="empty-state">No saved day.</p>
+                <p className="empty-state">Chưa có ngày ghi nhớ.</p>
               ) : null}
               {selectedCell?.holidays.map((holiday) => (
                 <div className="event-row holiday-row" key={holiday.id}>
@@ -308,22 +249,22 @@ function App() {
               {selectedCell?.memories.map((memory) => (
                 <div className="event-row" key={memory.id}>
                   <span>{memory.title}</span>
-                  <small>{memory.calendarKind}</small>
+                  <small>{calendarKindLabel(memory.calendarKind)}</small>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="detail-section">
-            <h2>Memory days</h2>
+            <h2>Ngày ghi nhớ</h2>
             <div className="memory-list">
-              {upcomingMemories.length === 0 ? <p className="empty-state">No memory days yet.</p> : null}
+              {upcomingMemories.length === 0 ? <p className="empty-state">Chưa có ngày ghi nhớ.</p> : null}
               {upcomingMemories.map(({ memory, occurrence }) => (
                 <div className="memory-row" key={memory.id}>
                   <div>
                     <strong>{memory.title}</strong>
                     <span>
-                      {toISODate(occurrence)} · {memory.calendarKind}
+                      {toISODate(occurrence)} · {calendarKindLabel(memory.calendarKind)}
                     </span>
                   </div>
                   <div className="row-actions">
@@ -331,7 +272,7 @@ function App() {
                       className="icon-button"
                       type="button"
                       onClick={() => downloadCalendarFile(memory, occurrence)}
-                      aria-label={`Save ${memory.title} to calendar`}
+                      aria-label={`Lưu ${memory.title} vào lịch`}
                     >
                       <Download aria-hidden="true" />
                     </button>
@@ -339,7 +280,7 @@ function App() {
                       className="icon-button danger"
                       type="button"
                       onClick={() => deleteMemory(memory.id)}
-                      aria-label={`Delete ${memory.title}`}
+                      aria-label={`Xóa ${memory.title}`}
                     >
                       <Trash2 aria-hidden="true" />
                     </button>
@@ -351,28 +292,50 @@ function App() {
         </aside>
       </section>
 
+      <details className="settings-menu">
+        <summary aria-label="Mở cài đặt">
+          <Settings aria-hidden="true" />
+        </summary>
+        <div className="settings-panel">
+          <label>
+            Quốc gia / ngày lễ
+            <select
+              aria-label="Quốc gia ngày lễ"
+              value={country}
+              onChange={(event) => setCountry(event.target.value as CountryCode)}
+            >
+              {Object.entries(countryNames).map(([code, label]) => (
+                <option key={code} value={code}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </details>
+
       {isAddingMemory ? (
         <div className="modal-backdrop" role="presentation">
           <form className="memory-modal" onSubmit={submitMemory}>
             <header>
-              <h2>Memory day</h2>
-              <button className="icon-button" type="button" onClick={() => setIsAddingMemory(false)} aria-label="Close">
+              <h2>Ngày ghi nhớ</h2>
+              <button className="icon-button" type="button" onClick={() => setIsAddingMemory(false)} aria-label="Đóng">
                 ×
               </button>
             </header>
 
             <label>
-              Name
+              Tên ngày
               <input
                 autoFocus
                 value={form.title}
                 onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                placeholder="Birthday, anniversary..."
+                placeholder="Sinh nhật, giỗ, kỷ niệm..."
               />
             </label>
 
             <label>
-              Date
+              Ngày
               <input
                 type="date"
                 value={form.sourceDate}
@@ -382,20 +345,20 @@ function App() {
 
             <div className="two-column">
               <label>
-                Calendar
+                Loại lịch
                 <select
                   value={form.calendarKind}
                   onChange={(event) =>
                     setForm((current) => ({ ...current, calendarKind: event.target.value as CalendarKind }))
                   }
                 >
-                  <option value="solar">Solar</option>
-                  <option value="lunar">Lunar</option>
+                  <option value="solar">Dương lịch</option>
+                  <option value="lunar">Âm lịch</option>
                 </select>
               </label>
 
               <label>
-                Country
+                Quốc gia
                 <select
                   value={form.country}
                   onChange={(event) => setForm((current) => ({ ...current, country: event.target.value as CountryCode }))}
@@ -416,7 +379,7 @@ function App() {
                   checked={form.repeatYearly}
                   onChange={(event) => setForm((current) => ({ ...current, repeatYearly: event.target.checked }))}
                 />
-                Repeat yearly
+                Lặp lại hằng năm
               </label>
               <label>
                 <input
@@ -424,7 +387,7 @@ function App() {
                   checked={form.remindWeekBefore}
                   onChange={(event) => setForm((current) => ({ ...current, remindWeekBefore: event.target.checked }))}
                 />
-                1 week before
+                Trước 1 tuần
               </label>
               <label>
                 <input
@@ -432,17 +395,17 @@ function App() {
                   checked={form.remindDayBefore}
                   onChange={(event) => setForm((current) => ({ ...current, remindDayBefore: event.target.checked }))}
                 />
-                1 day before
+                Trước 1 ngày
               </label>
             </div>
 
             <footer>
               <button type="button" className="today-button" onClick={() => setIsAddingMemory(false)}>
-                Cancel
+                Hủy
               </button>
               <button type="submit" className="primary-action">
                 <Plus aria-hidden="true" />
-                <span>Save</span>
+                <span>Lưu</span>
               </button>
             </footer>
           </form>

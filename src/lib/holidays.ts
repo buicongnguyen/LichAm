@@ -1,9 +1,9 @@
 import type { CountryCode, Holiday, LunarDate } from "../types";
 
 export const countryNames: Record<CountryCode, string> = {
-  VN: "Vietnam",
-  US: "United States",
-  KR: "Korea",
+  VN: "Việt Nam",
+  US: "Hoa Kỳ",
+  KR: "Hàn Quốc",
 };
 
 type SolarRule = {
@@ -23,10 +23,10 @@ type LunarRule = {
 };
 
 const solarRules: SolarRule[] = [
-  { country: "VN", month: 1, day: 1, label: "New Year" },
-  { country: "VN", month: 4, day: 30, label: "Reunification Day" },
-  { country: "VN", month: 5, day: 1, label: "Labor Day" },
-  { country: "VN", month: 9, day: 2, label: "National Day" },
+  { country: "VN", month: 1, day: 1, label: "Tết Dương lịch" },
+  { country: "VN", month: 4, day: 30, label: "Ngày Thống nhất" },
+  { country: "VN", month: 5, day: 1, label: "Quốc tế Lao động" },
+  { country: "VN", month: 9, day: 2, label: "Quốc khánh" },
   { country: "US", month: 1, day: 1, label: "New Year's Day" },
   { country: "US", month: 7, day: 4, label: "Independence Day" },
   { country: "US", month: 11, day: 11, label: "Veterans Day" },
@@ -40,12 +40,12 @@ const solarRules: SolarRule[] = [
 ];
 
 const lunarRules: LunarRule[] = [
-  { country: "VN", month: 1, day: 1, label: "Tet" },
-  { country: "VN", month: 1, day: 2, label: "Tet Holiday" },
-  { country: "VN", month: 1, day: 3, label: "Tet Holiday" },
-  { country: "VN", month: 3, day: 10, label: "Hung Kings" },
-  { country: "VN", month: 8, day: 15, label: "Mid-Autumn", type: "observance" },
-  { country: "VN", month: 12, day: 23, label: "Kitchen Gods", type: "observance" },
+  { country: "VN", month: 1, day: 1, label: "Tết Nguyên đán" },
+  { country: "VN", month: 1, day: 2, label: "Tết Nguyên đán" },
+  { country: "VN", month: 1, day: 3, label: "Tết Nguyên đán" },
+  { country: "VN", month: 3, day: 10, label: "Giỗ Tổ Hùng Vương" },
+  { country: "VN", month: 8, day: 15, label: "Tết Trung thu", type: "observance" },
+  { country: "VN", month: 12, day: 23, label: "Ông Công Ông Táo", type: "observance" },
   { country: "KR", month: 1, day: 1, label: "Seollal" },
   { country: "KR", month: 4, day: 8, label: "Buddha's Birthday" },
   { country: "KR", month: 8, day: 15, label: "Chuseok" },

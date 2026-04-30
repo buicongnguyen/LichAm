@@ -1,7 +1,7 @@
 {
-  "name": "Lich Am",
-  "short_name": "LichAm",
-  "description": "Solar and lunar calendar with saved memory days.",
+  "name": "Lịch Âm",
+  "short_name": "Lịch Âm",
+  "description": "Lịch dương và lịch âm với ngày ghi nhớ.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
