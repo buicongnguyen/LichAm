@@ -1,4 +1,4 @@
-const CACHE_NAME = "lich-am-shell-v6";
+const CACHE_NAME = "lich-am-shell-v7";
 const appUrl = (path) => new URL(path, self.registration.scope).toString();
 const SHELL_ASSETS = [appUrl("./"), appUrl("manifest.webmanifest"), appUrl("icon.svg")];
 

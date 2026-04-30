@@ -163,6 +163,7 @@ input {
 
 .icon-button,
 .primary-action,
+.view-switch-button,
 .today-button {
   min-height: 42px;
   border-radius: 8px;
@@ -199,6 +200,26 @@ input {
   white-space: nowrap;
 }
 
+.view-switch-button {
+  gap: 8px;
+  padding: 0 13px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  font-weight: 740;
+}
+
+.view-switch-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.view-switch-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .today-button {
   padding: 0 14px;
   background: #ffffff;
@@ -214,6 +235,14 @@ input {
   width: min(1480px, 100%);
   margin: 0 auto;
   padding: 24px clamp(16px, 4vw, 40px) 40px;
+}
+
+.year-workspace {
+  grid-template-columns: 1fr;
+}
+
+.year-workspace .detail-panel {
+  display: none;
 }
 
 .calendar-surface,
@@ -236,7 +265,8 @@ input {
 
 .calendar-toolbar,
 .weekday-row,
-.month-grid {
+.month-grid,
+.year-board {
   position: relative;
   z-index: 1;
 }
@@ -359,6 +389,92 @@ input {
   border-radius: 8px;
   background: #d8e1de;
   gap: 1px;
+}
+
+.year-board {
+  min-width: 0;
+}
+
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mini-month {
+  min-width: 0;
+  border: 1px solid #d8e1de;
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.mini-month h2 {
+  margin: 0 0 6px;
+  color: #16443d;
+  font-size: 0.92rem;
+  font-weight: 820;
+  text-transform: capitalize;
+}
+
+.mini-weekdays,
+.mini-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.mini-weekdays {
+  margin-bottom: 3px;
+  color: #687873;
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.mini-day {
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  min-width: 0;
+  min-height: 26px;
+  border: 0;
+  border-radius: 4px;
+  padding: 2px 1px;
+  color: #17211f;
+  background: transparent;
+  line-height: 1;
+}
+
+.mini-day span {
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.mini-day small {
+  color: #7a6219;
+  font-size: 0.55rem;
+  font-weight: 720;
+}
+
+.mini-muted {
+  opacity: 0.28;
+}
+
+.mini-selected {
+  box-shadow: inset 0 0 0 1.5px #0f6b5f;
+}
+
+.mini-today {
+  background: #fff0b8;
+}
+
+.mini-sunday span {
+  color: #8f1d18;
+  font-weight: 900;
+}
+
+.mini-saturday span {
+  color: #8f1d18;
 }
 
 .day-cell {
@@ -714,21 +830,71 @@ input {
   .selected-summary {
     grid-column: 1 / -1;
   }
+
+  .year-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
   .topbar {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    gap: 8px;
+    padding: 10px 10px;
   }
 
   .top-actions {
     display: flex;
+    flex: 0 0 auto;
+    gap: 6px;
     justify-content: stretch;
+  }
+
+  .brand {
+    min-width: 0;
+    flex: 1;
+    gap: 8px;
+  }
+
+  .brand svg {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 auto;
+  }
+
+  .brand h1 {
+    overflow: hidden;
+    font-size: 1.04rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .brand p {
+    display: none;
+  }
+
+  .primary-action,
+  .view-switch-button {
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
   }
 
   .primary-action {
     min-width: 0;
+  }
+
+  .primary-action span,
+  .view-switch-button span {
+    display: none;
+  }
+
+  .view-switch-button svg,
+  .primary-action svg {
+    width: 18px;
+    height: 18px;
   }
 
   .calendar-surface {
@@ -819,6 +985,41 @@ input {
   .detail-panel,
   .two-column,
   .check-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .year-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .year-toolbar {
+    grid-template-columns: 34px minmax(0, 1fr) 34px auto;
+  }
+
+  .mini-month {
+    padding: 7px;
+  }
+
+  .mini-month h2 {
+    font-size: 0.85rem;
+  }
+
+  .mini-day {
+    min-height: 22px;
+  }
+
+  .mini-day span {
+    font-size: 0.66rem;
+  }
+
+  .mini-day small {
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .year-grid {
     grid-template-columns: 1fr;
   }
 }

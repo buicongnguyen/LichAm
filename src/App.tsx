@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
+  CalendarRange,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -28,6 +29,9 @@ const today = new Date();
 const todayIso = toISODate(today);
 const vietnameseWeekdays = ["2", "3", "4", "5", "6", "7", "CN"];
 const vietnameseMonthFormatter = new Intl.DateTimeFormat("vi-VN", { month: "long", year: "numeric" });
+const vietnameseShortMonthFormatter = new Intl.DateTimeFormat("vi-VN", { month: "short" });
+
+type ViewMode = "month" | "year";
 
 type MemoryFormState = {
   title: string;
@@ -71,6 +75,7 @@ function App() {
   const [memoryDays, setMemoryDays] = useState<MemoryDay[]>(() => loadMemoryDays());
   const [isAddingMemory, setIsAddingMemory] = useState(false);
   const [form, setForm] = useState<MemoryFormState>(() => createInitialForm(todayIso, "VN"));
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
 
   useEffect(() => {
     saveMemoryDays(memoryDays);
@@ -81,6 +86,17 @@ function App() {
   const selectedIndex = cells.findIndex((cell) => cell.isoDate === selectedDate);
   const selectedWeekIndex = selectedIndex >= 0 ? Math.floor(selectedIndex / 7) : -1;
   const selectedLunar = solarToLunar(parseISODate(selectedDate));
+  const yearMonths = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, month) => {
+        const date = new Date(monthDate.getFullYear(), month, 1);
+        return {
+          date,
+          cells: buildCalendarMonth(date, country, memoryDays),
+        };
+      }),
+    [country, memoryDays, monthDate],
+  );
 
   const upcomingMemories = useMemo(
     () =>
@@ -97,6 +113,10 @@ function App() {
 
   function changeMonth(offset: number) {
     setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+  }
+
+  function changeYear(offset: number) {
+    setMonthDate((current) => new Date(current.getFullYear() + offset, current.getMonth(), 1));
   }
 
   function jumpToToday() {
@@ -130,6 +150,12 @@ function App() {
     }
   }
 
+  function onSelectYearCell(cell: CalendarCell) {
+    setSelectedDate(cell.isoDate);
+    setMonthDate(normalizeMonth(cell.date));
+    setViewMode("month");
+  }
+
   return (
     <main className="app-shell">
       <header className="topbar">
@@ -142,87 +168,163 @@ function App() {
         </div>
 
         <div className="top-actions">
-          <button className="primary-action" type="button" onClick={() => openMemoryForm()}>
+          <button className="primary-action" type="button" onClick={() => openMemoryForm()} aria-label="Thêm ngày ghi nhớ">
             <Plus aria-hidden="true" />
             <span>Ngày ghi nhớ</span>
+          </button>
+          <button
+            className="view-switch-button"
+            type="button"
+            aria-label={viewMode === "month" ? "Mở bảng năm" : "Trở về lịch tháng"}
+            onClick={() => setViewMode((current) => (current === "month" ? "year" : "month"))}
+          >
+            <CalendarRange aria-hidden="true" />
+            <span>{viewMode === "month" ? "Bảng năm" : "Tháng"}</span>
           </button>
         </div>
       </header>
 
-      <section className="workspace">
+      <section className={viewMode === "year" ? "workspace year-workspace" : "workspace"}>
         <div className="calendar-surface">
           <LotusFrame />
-          <div className="calendar-toolbar">
-            <button className="icon-button" type="button" onClick={() => changeMonth(-1)} aria-label="Tháng trước">
-              <ChevronLeft aria-hidden="true" />
-            </button>
-            <div className="month-title">
-              <strong>{vietnameseMonthFormatter.format(monthDate)}</strong>
-              <span>
-                {selectedDate} · Âm lịch {selectedLunar.day}/{selectedLunar.month}
-              </span>
-            </div>
-            <button className="icon-button" type="button" onClick={() => changeMonth(1)} aria-label="Tháng sau">
-              <ChevronRight aria-hidden="true" />
-            </button>
-            <button className="today-button" type="button" onClick={jumpToToday}>
-              Hôm nay
-            </button>
-          </div>
-
-          <div className="weekday-row">
-            {vietnameseWeekdays.map((day) => (
-              <div key={day}>{day}</div>
-            ))}
-          </div>
-
-          <div className="month-grid">
-            {cells.map((cell, index) => {
-              const isToday = cell.isoDate === todayIso;
-              const isSelected = cell.isoDate === selectedDate;
-              const isSelectedWeek = Math.floor(index / 7) === selectedWeekIndex;
-              const hasHoliday = cell.holidays.length > 0;
-              const isSunday = cell.date.getDay() === 0;
-              const isSaturday = cell.date.getDay() === 6;
-              const moonPhase = getMoonPhase(cell.lunar.day);
-              const markers = [...cell.holidays, ...cell.memories.map((memory) => ({ id: memory.id, label: memory.title }))];
-
-              return (
-                <button
-                  key={cell.isoDate}
-                  type="button"
-                  className={[
-                    "day-cell",
-                    cell.inCurrentMonth ? "" : "muted-month",
-                    isToday ? "today" : "",
-                    isSelected ? "selected-day" : "",
-                    isSelectedWeek ? "selected-week" : "",
-                    hasHoliday ? "holiday-day" : "",
-                    isSunday ? "sunday-day" : "",
-                    isSaturday ? "saturday-day" : "",
-                    moonPhase.isFull ? "full-moon-day" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => onSelectCell(cell)}
-                >
-                  <span className="day-numbers">
-                    <span className="solar-number">{cell.date.getDate()}</span>
-                    <span className="lunar-number">
-                      <MoonPhaseIcon country={country} phase={moonPhase} />
-                      <span>{lunarText(cell)}</span>
-                    </span>
-                  </span>
-                  <span className="lunar-boundary" aria-hidden="true" />
-                  <span className="markers">
-                    {markers.slice(0, 3).map((marker) => (
-                      <span key={marker.id}>{marker.label}</span>
-                    ))}
-                  </span>
+          {viewMode === "month" ? (
+            <>
+              <div className="calendar-toolbar">
+                <button className="icon-button" type="button" onClick={() => changeMonth(-1)} aria-label="Tháng trước">
+                  <ChevronLeft aria-hidden="true" />
                 </button>
-              );
-            })}
-          </div>
+                <div className="month-title">
+                  <strong>{vietnameseMonthFormatter.format(monthDate)}</strong>
+                  <span>
+                    {selectedDate} · Âm lịch {selectedLunar.day}/{selectedLunar.month}
+                  </span>
+                </div>
+                <button className="icon-button" type="button" onClick={() => changeMonth(1)} aria-label="Tháng sau">
+                  <ChevronRight aria-hidden="true" />
+                </button>
+                <button className="today-button" type="button" onClick={jumpToToday}>
+                  Hôm nay
+                </button>
+              </div>
+
+              <div className="weekday-row">
+                {vietnameseWeekdays.map((day) => (
+                  <div key={day}>{day}</div>
+                ))}
+              </div>
+
+              <div className="month-grid">
+                {cells.map((cell, index) => {
+                  const isToday = cell.isoDate === todayIso;
+                  const isSelected = cell.isoDate === selectedDate;
+                  const isSelectedWeek = Math.floor(index / 7) === selectedWeekIndex;
+                  const hasHoliday = cell.holidays.length > 0;
+                  const isSunday = cell.date.getDay() === 0;
+                  const isSaturday = cell.date.getDay() === 6;
+                  const moonPhase = getMoonPhase(cell.lunar.day);
+                  const markers = [
+                    ...cell.holidays,
+                    ...cell.memories.map((memory) => ({ id: memory.id, label: memory.title })),
+                  ];
+
+                  return (
+                    <button
+                      key={cell.isoDate}
+                      type="button"
+                      className={[
+                        "day-cell",
+                        cell.inCurrentMonth ? "" : "muted-month",
+                        isToday ? "today" : "",
+                        isSelected ? "selected-day" : "",
+                        isSelectedWeek ? "selected-week" : "",
+                        hasHoliday ? "holiday-day" : "",
+                        isSunday ? "sunday-day" : "",
+                        isSaturday ? "saturday-day" : "",
+                        moonPhase.isFull ? "full-moon-day" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() => onSelectCell(cell)}
+                    >
+                      <span className="day-numbers">
+                        <span className="solar-number">{cell.date.getDate()}</span>
+                        <span className="lunar-number">
+                          <MoonPhaseIcon country={country} phase={moonPhase} />
+                          <span>{lunarText(cell)}</span>
+                        </span>
+                      </span>
+                      <span className="lunar-boundary" aria-hidden="true" />
+                      <span className="markers">
+                        {markers.slice(0, 3).map((marker) => (
+                          <span key={marker.id}>{marker.label}</span>
+                        ))}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="year-board">
+              <div className="calendar-toolbar year-toolbar">
+                <button className="icon-button" type="button" onClick={() => changeYear(-1)} aria-label="Năm trước">
+                  <ChevronLeft aria-hidden="true" />
+                </button>
+                <div className="month-title">
+                  <strong>Năm {monthDate.getFullYear()}</strong>
+                  <span>Bảng 12 tháng · dương/âm</span>
+                </div>
+                <button className="icon-button" type="button" onClick={() => changeYear(1)} aria-label="Năm sau">
+                  <ChevronRight aria-hidden="true" />
+                </button>
+                <button className="today-button" type="button" onClick={jumpToToday}>
+                  Hôm nay
+                </button>
+              </div>
+
+              <div className="year-grid">
+                {yearMonths.map((month) => (
+                  <section className="mini-month" key={month.date.toISOString()}>
+                    <h2>{vietnameseShortMonthFormatter.format(month.date)}</h2>
+                    <div className="mini-weekdays">
+                      {vietnameseWeekdays.map((day) => (
+                        <span key={day}>{day}</span>
+                      ))}
+                    </div>
+                    <div className="mini-month-grid">
+                      {month.cells.map((cell) => {
+                        const isToday = cell.isoDate === todayIso;
+                        const isSelected = cell.isoDate === selectedDate;
+                        const isSunday = cell.date.getDay() === 0;
+                        const isSaturday = cell.date.getDay() === 6;
+
+                        return (
+                          <button
+                            key={cell.isoDate}
+                            type="button"
+                            className={[
+                              "mini-day",
+                              cell.inCurrentMonth ? "" : "mini-muted",
+                              isToday ? "mini-today" : "",
+                              isSelected ? "mini-selected" : "",
+                              isSunday ? "mini-sunday" : "",
+                              isSaturday ? "mini-saturday" : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
+                            onClick={() => onSelectYearCell(cell)}
+                          >
+                            <span>{cell.date.getDate()}</span>
+                            <small>{cell.lunar.day}</small>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <aside className="detail-panel">
