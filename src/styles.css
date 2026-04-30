@@ -468,6 +468,15 @@ input {
   background: #fff0b8;
 }
 
+.mini-holiday span {
+  color: #bf2f25;
+  font-weight: 900;
+}
+
+.mini-holiday small {
+  color: #8c2d24;
+}
+
 .mini-sunday span {
   color: #8f1d18;
   font-weight: 900;

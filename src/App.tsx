@@ -61,6 +61,10 @@ function lunarText(cell: Pick<CalendarCell, "lunar">) {
   return `${leap}${cell.lunar.day}/${cell.lunar.month}`;
 }
 
+function miniLunarText(cell: Pick<CalendarCell, "lunar">) {
+  return cell.lunar.day === 1 ? `1/${cell.lunar.month}` : String(cell.lunar.day);
+}
+
 function normalizeMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
@@ -306,6 +310,7 @@ function App() {
                         const isSelected = cell.isoDate === selectedDate;
                         const isSunday = cell.date.getDay() === 0;
                         const isSaturday = cell.date.getDay() === 6;
+                        const hasHoliday = cell.holidays.length > 0;
 
                         return (
                           <button
@@ -316,6 +321,7 @@ function App() {
                               cell.inCurrentMonth ? "" : "mini-muted",
                               isToday ? "mini-today" : "",
                               isSelected ? "mini-selected" : "",
+                              hasHoliday ? "mini-holiday" : "",
                               isSunday ? "mini-sunday" : "",
                               isSaturday ? "mini-saturday" : "",
                             ]
@@ -324,7 +330,7 @@ function App() {
                             onClick={() => onSelectYearCell(cell)}
                           >
                             <span>{cell.date.getDate()}</span>
-                            <small>{cell.lunar.day}</small>
+                            <small>{miniLunarText(cell)}</small>
                           </button>
                         );
                       })}
