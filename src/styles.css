@@ -1,0 +1,584 @@
+:root {
+  color: #17211f;
+  background: #f5f7f9;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(15, 107, 95, 0.08), transparent 260px),
+    #f5f7f9;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px clamp(16px, 4vw, 40px);
+  color: #ffffff;
+  background: #0f6b5f;
+  border-bottom: 4px solid #d9b23f;
+}
+
+.brand,
+.top-actions,
+.calendar-toolbar,
+.day-numbers,
+.row-actions,
+.memory-modal header,
+.memory-modal footer {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  gap: 12px;
+}
+
+.brand svg {
+  width: 34px;
+  height: 34px;
+}
+
+.brand h1,
+.brand p,
+.detail-section h2,
+.memory-modal h2 {
+  margin: 0;
+}
+
+.brand h1 {
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+  letter-spacing: 0;
+}
+
+.brand p {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.9rem;
+}
+
+.top-actions {
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+select,
+input {
+  border: 1px solid #c9d4d1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  color: #17211f;
+}
+
+.icon-button,
+.primary-action,
+.today-button {
+  min-height: 42px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button {
+  width: 42px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.icon-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.primary-action {
+  gap: 8px;
+  padding: 0 15px;
+  color: #12322e;
+  background: #f2d46b;
+  border-color: #e0bf52;
+  font-weight: 750;
+}
+
+.today-button {
+  padding: 0 14px;
+  background: #ffffff;
+  color: #16443d;
+  border-color: #c9d4d1;
+  font-weight: 700;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 24px;
+  width: min(1480px, 100%);
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 40px) 40px;
+}
+
+.calendar-surface,
+.detail-panel {
+  min-width: 0;
+}
+
+.calendar-toolbar {
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.calendar-toolbar .icon-button,
+.detail-panel .icon-button,
+.memory-modal .icon-button {
+  color: #16443d;
+  background: #ffffff;
+  border-color: #c9d4d1;
+}
+
+.month-title {
+  flex: 1;
+  min-width: 180px;
+}
+
+.month-title strong {
+  display: block;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  letter-spacing: 0;
+}
+
+.month-title span {
+  color: #5f6f6b;
+  font-size: 0.92rem;
+}
+
+.weekday-row,
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.weekday-row {
+  color: #5f6f6b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.weekday-row div {
+  padding: 0 10px 8px;
+}
+
+.month-grid {
+  grid-auto-rows: minmax(104px, auto);
+  overflow: hidden;
+  border: 1px solid #d8e1de;
+  border-radius: 8px;
+  background: #d8e1de;
+  gap: 1px;
+}
+
+.day-cell {
+  position: relative;
+  min-width: 0;
+  min-height: 104px;
+  padding: 10px;
+  border: 0;
+  text-align: left;
+  color: #17211f;
+  background: #ffffff;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease,
+    min-height 160ms ease;
+}
+
+.day-cell:hover {
+  background: #f8fbfa;
+}
+
+.day-cell.muted-month {
+  color: #83918d;
+  background: #f1f4f3;
+}
+
+.day-cell.selected-week {
+  min-height: 142px;
+  background: #fbfdfc;
+}
+
+.day-cell.selected-day {
+  box-shadow: inset 0 0 0 2px #0f6b5f;
+  z-index: 1;
+}
+
+.day-cell.today .solar-number,
+.day-cell.today .lunar-number {
+  font-weight: 900;
+  color: #0d5149;
+}
+
+.day-cell.holiday-day .solar-number {
+  color: #bf2f25;
+  font-weight: 900;
+}
+
+.day-cell.holiday-day .lunar-number {
+  border-color: #efb4a9;
+  color: #8c2d24;
+}
+
+.day-numbers {
+  position: relative;
+  z-index: 1;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.solar-number,
+.lunar-number {
+  line-height: 1;
+}
+
+.solar-number {
+  font-size: clamp(1rem, 1.6vw, 1.22rem);
+  font-weight: 760;
+}
+
+.lunar-number {
+  min-width: 46px;
+  padding: 5px 7px;
+  border: 1px solid #f2d46b;
+  border-radius: 999px;
+  background: #fffdf1;
+  color: #725b16;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: clamp(0.9rem, 1.5vw, 1.08rem);
+  font-weight: 680;
+  text-align: center;
+}
+
+.moon-phase-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 1px 0 rgba(114, 91, 22, 0.16));
+}
+
+.moon-shadow {
+  fill: #1b2729;
+}
+
+.moon-light {
+  fill: #f5d86f;
+}
+
+.moon-ring {
+  fill: none;
+  stroke: rgba(114, 91, 22, 0.58);
+  stroke-width: 2;
+}
+
+.lunar-boundary {
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(242, 212, 107, 0.52);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.markers {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 14px;
+}
+
+.markers span {
+  overflow: hidden;
+  max-width: 100%;
+  color: #8a391f;
+  font-size: 0.74rem;
+  font-weight: 740;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.selected-summary,
+.detail-section {
+  border: 1px solid #d8e1de;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.selected-summary {
+  padding: 18px;
+}
+
+.selected-summary span {
+  color: #667673;
+  font-size: 0.9rem;
+}
+
+.selected-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f6b5f;
+  font-size: 1.18rem;
+}
+
+.detail-section {
+  padding: 16px;
+}
+
+.detail-section h2 {
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.event-list,
+.memory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty-state {
+  margin: 0;
+  color: #75817e;
+}
+
+.event-row,
+.memory-row {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  border-left: 3px solid #0f6b5f;
+  padding: 8px 0 8px 10px;
+}
+
+.holiday-row {
+  border-left-color: #bf4d2f;
+}
+
+.event-row span,
+.memory-row strong {
+  font-weight: 760;
+}
+
+.event-row small,
+.memory-row span {
+  color: #677672;
+  font-size: 0.82rem;
+}
+
+.memory-row {
+  align-items: center;
+}
+
+.memory-row > div:first-child {
+  min-width: 0;
+}
+
+.memory-row strong,
+.memory-row span {
+  display: block;
+}
+
+.row-actions {
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.row-actions .icon-button {
+  width: 36px;
+  min-height: 36px;
+}
+
+.icon-button.danger {
+  color: #a33428;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 33, 31, 0.45);
+}
+
+.memory-modal {
+  display: grid;
+  gap: 14px;
+  width: min(520px, 100%);
+  border: 1px solid #d8e1de;
+  border-radius: 8px;
+  padding: 18px;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(16, 33, 31, 0.28);
+}
+
+.memory-modal header,
+.memory-modal footer {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.memory-modal h2 {
+  font-size: 1.15rem;
+}
+
+.memory-modal label {
+  display: grid;
+  gap: 7px;
+  color: #475854;
+  font-size: 0.9rem;
+  font-weight: 720;
+}
+
+.memory-modal input,
+.memory-modal select {
+  width: 100%;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.check-grid label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid #d8e1de;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #263633;
+}
+
+.check-grid input {
+  width: auto;
+}
+
+@media (max-width: 980px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .selected-summary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar,
+  .calendar-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .top-actions {
+    justify-content: stretch;
+  }
+
+  .top-actions select,
+  .primary-action,
+  .today-button {
+    flex: 1;
+  }
+
+  .weekday-row div {
+    padding-inline: 4px;
+    text-align: center;
+  }
+
+  .month-grid {
+    grid-auto-rows: minmax(82px, auto);
+  }
+
+  .day-cell {
+    min-height: 82px;
+    padding: 7px;
+  }
+
+  .day-cell.selected-week {
+    min-height: 112px;
+  }
+
+  .day-numbers {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lunar-number {
+    min-width: 40px;
+    padding: 4px 6px;
+  }
+
+  .markers {
+    margin-top: 8px;
+  }
+
+  .markers span {
+    font-size: 0.68rem;
+  }
+
+  .detail-panel,
+  .two-column,
+  .check-grid {
+    grid-template-columns: 1fr;
+  }
+}
