@@ -317,6 +317,15 @@ input {
   color: #8c2d24;
 }
 
+.day-cell.sunday-day .solar-number {
+  color: #8f1d18;
+  font-weight: 900;
+}
+
+.day-cell.saturday-day .solar-number {
+  color: #8f1d18;
+}
+
 .day-numbers {
   position: relative;
   z-index: 1;

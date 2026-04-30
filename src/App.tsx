@@ -241,6 +241,8 @@ function App() {
               const isSelected = cell.isoDate === selectedDate;
               const isSelectedWeek = Math.floor(index / 7) === selectedWeekIndex;
               const hasHoliday = cell.holidays.length > 0;
+              const isSunday = cell.date.getDay() === 0;
+              const isSaturday = cell.date.getDay() === 6;
               const moonPhase = getMoonPhase(cell.lunar.day);
               const markers = [...cell.holidays, ...cell.memories.map((memory) => ({ id: memory.id, label: memory.title }))];
 
@@ -255,6 +257,8 @@ function App() {
                     isSelected ? "selected-day" : "",
                     isSelectedWeek ? "selected-week" : "",
                     hasHoliday ? "holiday-day" : "",
+                    isSunday ? "sunday-day" : "",
+                    isSaturday ? "saturday-day" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
