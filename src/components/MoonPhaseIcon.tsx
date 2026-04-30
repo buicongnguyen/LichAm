@@ -37,9 +37,6 @@ function FullMoonMotif({ country }: { country: CountryCode }) {
 
 export function MoonPhaseIcon({ country, phase }: MoonPhaseIconProps) {
   const clipId = useId().replace(/:/g, "");
-  const lightRadius = 1.2 + 11.8 * Math.pow(phase.illumination, 0.72);
-  const lightShift = phase.isFull ? 0 : (phase.waxing ? 1 : -1) * (1 - phase.illumination) * 5.5;
-  const discTransform = `translate(16 16) scale(${phase.visualScale.toFixed(3)}) translate(-16 -16)`;
 
   return (
     <svg
@@ -54,10 +51,10 @@ export function MoonPhaseIcon({ country, phase }: MoonPhaseIconProps) {
           <circle cx="16" cy="16" r="13" />
         </clipPath>
       </defs>
-      <g transform={discTransform}>
-        <circle className="moon-shadow" cx="16" cy="16" r="13" />
-        {phase.litPercent > 1 ? (
-          <circle className="moon-light" cx={16 + lightShift} cy="16" r={lightRadius} clipPath={`url(#${clipId})`} />
+      <g>
+        <circle className="moon-light" cx="16" cy="16" r="13" />
+        {!phase.isFull ? (
+          <circle className="moon-shadow" cx={phase.shadowX} cy="16" r="13" clipPath={`url(#${clipId})`} />
         ) : null}
         {phase.isFull ? <FullMoonMotif country={country} /> : null}
         <circle className="moon-ring" cx="16" cy="16" r="13" />

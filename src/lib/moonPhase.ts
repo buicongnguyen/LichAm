@@ -6,7 +6,7 @@ export type MoonPhase = {
   day: number;
   illumination: number;
   litPercent: number;
-  visualScale: number;
+  shadowX: number;
   waxing: boolean;
   isFull: boolean;
 };
@@ -14,13 +14,11 @@ export type MoonPhase = {
 export function getMoonPhase(lunarDay: number): MoonPhase {
   const day = Math.max(1, Math.min(30, lunarDay));
   const fullMoonDay = 15;
-  const distanceFromFull = Math.min(Math.abs(day - fullMoonDay), Math.abs(day + 30 - fullMoonDay));
-  const rawIllumination = Math.max(0, Math.cos((distanceFromFull / fullMoonDay) * (Math.PI / 2)));
   const isFull = day === fullMoonDay;
-  const illumination = isFull ? 1 : Math.min(rawIllumination, 0.9);
-  const litPercent = Math.round(illumination * 100);
-  const visualScale = 0.5 + illumination * 0.5;
   const waxing = day <= fullMoonDay;
+  const illumination = waxing ? Math.max(0, (day - 1) / 14) : Math.max(0, (30 - day) / 15);
+  const litPercent = Math.round(illumination * 100);
+  const shadowX = waxing ? 16 - illumination * 26 : 42 - (1 - illumination) * 26;
 
   let kind: MoonPhaseKind = "new";
   if (isFull) {
@@ -42,7 +40,7 @@ export function getMoonPhase(lunarDay: number): MoonPhase {
     day,
     illumination,
     litPercent,
-    visualScale,
+    shadowX,
     waxing,
     isFull,
   };
