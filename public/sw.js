@@ -1,5 +1,6 @@
-const CACHE_NAME = "lich-am-shell-v1";
-const SHELL_ASSETS = ["/", "/manifest.webmanifest", "/icon.svg"];
+const CACHE_NAME = "lich-am-shell-v2";
+const appUrl = (path) => new URL(path, self.registration.scope).toString();
+const SHELL_ASSETS = [appUrl("./"), appUrl("manifest.webmanifest"), appUrl("icon.svg")];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)));
@@ -34,7 +35,7 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => {
           if (event.request.mode === "navigate") {
-            return caches.match("/");
+            return caches.match(appUrl("./"));
           }
 
           return Response.error();

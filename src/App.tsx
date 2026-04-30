@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Download,
   Plus,
+  Settings,
   Trash2,
 } from "lucide-react";
 import { MoonPhaseIcon } from "./components/MoonPhaseIcon";
@@ -177,17 +178,27 @@ function App() {
         </div>
 
         <div className="top-actions">
-          <select
-            aria-label="Holiday country"
-            value={country}
-            onChange={(event) => setCountry(event.target.value as CountryCode)}
-          >
-            {Object.entries(countryNames).map(([code, label]) => (
-              <option key={code} value={code}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <details className="settings-menu">
+            <summary aria-label="Open settings">
+              <Settings aria-hidden="true" />
+            </summary>
+            <div className="settings-panel">
+              <label>
+                Country holidays
+                <select
+                  aria-label="Holiday country"
+                  value={country}
+                  onChange={(event) => setCountry(event.target.value as CountryCode)}
+                >
+                  {Object.entries(countryNames).map(([code, label]) => (
+                    <option key={code} value={code}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </details>
           <button className="icon-button" type="button" onClick={requestNotifications} aria-label="Enable reminders">
             <Bell aria-hidden="true" />
           </button>

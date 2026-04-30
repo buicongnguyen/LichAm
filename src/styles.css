@@ -83,9 +83,63 @@ button {
 }
 
 .top-actions {
+  position: relative;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.settings-menu {
+  position: relative;
+}
+
+.settings-menu summary {
+  width: 42px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  list-style: none;
+}
+
+.settings-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-menu summary svg {
+  width: 20px;
+  height: 20px;
+}
+
+.settings-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 4;
+  width: min(260px, calc(100vw - 32px));
+  border: 1px solid #d8e1de;
+  border-radius: 8px;
+  padding: 12px;
+  color: #17211f;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(16, 33, 31, 0.2);
+}
+
+.settings-panel label {
+  display: grid;
+  gap: 7px;
+  color: #475854;
+  font-size: 0.9rem;
+  font-weight: 720;
+}
+
+.settings-panel select {
+  width: 100%;
 }
 
 select,
@@ -524,20 +578,51 @@ input {
 }
 
 @media (max-width: 720px) {
-  .topbar,
-  .calendar-toolbar {
+  .topbar {
     align-items: stretch;
     flex-direction: column;
   }
 
   .top-actions {
-    justify-content: stretch;
+    justify-content: space-between;
   }
 
-  .top-actions select,
-  .primary-action,
-  .today-button {
+  .primary-action {
     flex: 1;
+  }
+
+  .calendar-toolbar {
+    align-items: center;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 38px auto;
+    gap: 6px;
+  }
+
+  .calendar-toolbar .icon-button {
+    width: 38px;
+    min-height: 38px;
+  }
+
+  .month-title {
+    min-width: 0;
+    text-align: center;
+  }
+
+  .month-title strong {
+    overflow: hidden;
+    font-size: 1.02rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .month-title span {
+    display: none;
+  }
+
+  .today-button {
+    min-height: 38px;
+    padding-inline: 10px;
+    font-size: 0.86rem;
   }
 
   .weekday-row div {
@@ -551,7 +636,7 @@ input {
 
   .day-cell {
     min-height: 82px;
-    padding: 7px;
+    padding: 6px 4px;
   }
 
   .day-cell.selected-week {
@@ -559,13 +644,22 @@ input {
   }
 
   .day-numbers {
-    align-items: flex-start;
+    align-items: center;
     flex-direction: column;
+    gap: 5px;
   }
 
   .lunar-number {
-    min-width: 40px;
-    padding: 4px 6px;
+    min-width: 34px;
+    padding: 4px 3px;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.78rem;
+  }
+
+  .moon-phase-icon {
+    width: 14px;
+    height: 14px;
   }
 
   .markers {
