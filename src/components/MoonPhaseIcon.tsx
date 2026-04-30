@@ -1,13 +1,45 @@
 import { useId } from "react";
 import type { MoonPhase } from "../lib/moonPhase";
+import type { CountryCode } from "../types";
 
 type MoonPhaseIconProps = {
+  country: CountryCode;
   phase: MoonPhase;
 };
 
-export function MoonPhaseIcon({ phase }: MoonPhaseIconProps) {
-  const x = phase.waxing ? 100 - phase.litPercent : 0;
+function FullMoonMotif({ country }: { country: CountryCode }) {
+  if (country === "VN") {
+    return (
+      <g className="moon-motif moon-motif-vn" aria-hidden="true">
+        <path d="M16 21v-9" />
+        <path d="M16 13c-3 1-4 3-5 5" />
+        <path d="M16 14c3 1 4 3 5 5" />
+        <path d="M16 12c-1.7 1.6-2.2 3.2-2.3 5.2" />
+        <path d="M16 12c1.7 1.6 2.2 3.2 2.3 5.2" />
+      </g>
+    );
+  }
+
+  if (country === "KR") {
+    return (
+      <g className="moon-motif moon-motif-kr" aria-hidden="true">
+        <ellipse cx="16" cy="18.5" rx="4.5" ry="3.4" />
+        <circle cx="18.5" cy="14.6" r="2.4" />
+        <ellipse cx="17.2" cy="11" rx="1" ry="3.2" transform="rotate(-18 17.2 11)" />
+        <ellipse cx="20.2" cy="11.4" rx="1" ry="3" transform="rotate(24 20.2 11.4)" />
+        <circle cx="19.3" cy="14.1" r="0.35" />
+      </g>
+    );
+  }
+
+  return null;
+}
+
+export function MoonPhaseIcon({ country, phase }: MoonPhaseIconProps) {
   const clipId = useId().replace(/:/g, "");
+  const lightRadius = 1.2 + 11.8 * Math.pow(phase.illumination, 0.72);
+  const lightShift = phase.isFull ? 0 : (phase.waxing ? 1 : -1) * (1 - phase.illumination) * 5.5;
+  const discTransform = `translate(16 16) scale(${phase.visualScale.toFixed(3)}) translate(-16 -16)`;
 
   return (
     <svg
@@ -22,16 +54,14 @@ export function MoonPhaseIcon({ phase }: MoonPhaseIconProps) {
           <circle cx="16" cy="16" r="13" />
         </clipPath>
       </defs>
-      <circle className="moon-shadow" cx="16" cy="16" r="13" />
-      <rect
-        className="moon-light"
-        x={`${x}%`}
-        y="3"
-        width={`${phase.litPercent}%`}
-        height="26"
-        clipPath={`url(#${clipId})`}
-      />
-      <circle className="moon-ring" cx="16" cy="16" r="13" />
+      <g transform={discTransform}>
+        <circle className="moon-shadow" cx="16" cy="16" r="13" />
+        {phase.litPercent > 1 ? (
+          <circle className="moon-light" cx={16 + lightShift} cy="16" r={lightRadius} clipPath={`url(#${clipId})`} />
+        ) : null}
+        {phase.isFull ? <FullMoonMotif country={country} /> : null}
+        <circle className="moon-ring" cx="16" cy="16" r="13" />
+      </g>
     </svg>
   );
 }

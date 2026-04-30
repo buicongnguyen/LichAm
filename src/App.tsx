@@ -178,6 +178,13 @@ function App() {
         </div>
 
         <div className="top-actions">
+          <button className="primary-action" type="button" onClick={() => openMemoryForm()}>
+            <Plus aria-hidden="true" />
+            <span>Memory day</span>
+          </button>
+          <button className="icon-button" type="button" onClick={requestNotifications} aria-label="Enable reminders">
+            <Bell aria-hidden="true" />
+          </button>
           <details className="settings-menu">
             <summary aria-label="Open settings">
               <Settings aria-hidden="true" />
@@ -199,13 +206,6 @@ function App() {
               </label>
             </div>
           </details>
-          <button className="icon-button" type="button" onClick={requestNotifications} aria-label="Enable reminders">
-            <Bell aria-hidden="true" />
-          </button>
-          <button className="primary-action" type="button" onClick={() => openMemoryForm()}>
-            <Plus aria-hidden="true" />
-            <span>Memory day</span>
-          </button>
         </div>
       </header>
 
@@ -263,7 +263,7 @@ function App() {
                   <span className="day-numbers">
                     <span className="solar-number">{cell.date.getDate()}</span>
                     <span className="lunar-number">
-                      <MoonPhaseIcon phase={moonPhase} />
+                      <MoonPhaseIcon country={country} phase={moonPhase} />
                       <span>{lunarText(cell)}</span>
                     </span>
                   </span>

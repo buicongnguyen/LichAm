@@ -3,40 +3,46 @@ export type MoonPhaseKind = "new" | "quarter" | "half" | "three-quarter" | "full
 export type MoonPhase = {
   kind: MoonPhaseKind;
   label: string;
+  day: number;
+  illumination: number;
   litPercent: number;
+  visualScale: number;
   waxing: boolean;
+  isFull: boolean;
 };
 
 export function getMoonPhase(lunarDay: number): MoonPhase {
   const day = Math.max(1, Math.min(30, lunarDay));
+  const fullMoonDay = 15;
+  const distanceFromFull = Math.min(Math.abs(day - fullMoonDay), Math.abs(day + 30 - fullMoonDay));
+  const illumination = Math.max(0, Math.cos((distanceFromFull / fullMoonDay) * (Math.PI / 2)));
+  const litPercent = Math.round(illumination * 100);
+  const visualScale = 0.5 + illumination * 0.5;
+  const waxing = day <= fullMoonDay;
+  const isFull = illumination >= 0.96;
 
-  if (day <= 2 || day >= 29) {
-    return { kind: "new", label: "New moon", litPercent: 0, waxing: day < 15 };
+  let kind: MoonPhaseKind = "new";
+  if (litPercent >= 92) {
+    kind = "full";
+  } else if (litPercent >= 67) {
+    kind = "three-quarter";
+  } else if (litPercent >= 34) {
+    kind = "half";
+  } else if (litPercent >= 8) {
+    kind = "quarter";
   }
 
-  if (day <= 5) {
-    return { kind: "quarter", label: "Quarter moon", litPercent: 25, waxing: true };
-  }
+  const direction = kind === "full" || kind === "new" ? "" : waxing ? "waxing " : "waning ";
+  const label = `${direction}${kind === "three-quarter" ? "three quarter" : kind} moon`;
 
-  if (day <= 9) {
-    return { kind: "half", label: "Half moon", litPercent: 50, waxing: true };
-  }
-
-  if (day <= 13) {
-    return { kind: "three-quarter", label: "Three quarter moon", litPercent: 75, waxing: true };
-  }
-
-  if (day <= 17) {
-    return { kind: "full", label: "Full moon", litPercent: 100, waxing: true };
-  }
-
-  if (day <= 21) {
-    return { kind: "three-quarter", label: "Three quarter moon", litPercent: 75, waxing: false };
-  }
-
-  if (day <= 25) {
-    return { kind: "half", label: "Half moon", litPercent: 50, waxing: false };
-  }
-
-  return { kind: "quarter", label: "Quarter moon", litPercent: 25, waxing: false };
+  return {
+    kind,
+    label: label.charAt(0).toUpperCase() + label.slice(1),
+    day,
+    illumination,
+    litPercent,
+    visualScale,
+    waxing,
+    isFull,
+  };
 }

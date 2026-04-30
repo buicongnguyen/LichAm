@@ -84,6 +84,7 @@ button {
 
 .top-actions {
   position: relative;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -181,6 +182,12 @@ input {
   background: #f2d46b;
   border-color: #e0bf52;
   font-weight: 750;
+}
+
+.primary-action span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .today-button {
@@ -361,6 +368,26 @@ input {
   fill: none;
   stroke: rgba(114, 91, 22, 0.58);
   stroke-width: 2;
+}
+
+.moon-motif {
+  pointer-events: none;
+}
+
+.moon-motif-vn {
+  fill: none;
+  stroke: #d86522;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.moon-motif-kr {
+  fill: #f4b735;
+  stroke: #7a5518;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 0.7;
 }
 
 .lunar-boundary {
@@ -584,11 +611,13 @@ input {
   }
 
   .top-actions {
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px 42px;
+    justify-content: stretch;
   }
 
   .primary-action {
-    flex: 1;
+    min-width: 0;
   }
 
   .calendar-toolbar {
