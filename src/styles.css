@@ -278,8 +278,7 @@ input {
   background: #ffffff;
   transition:
     background 160ms ease,
-    box-shadow 160ms ease,
-    min-height 160ms ease;
+    box-shadow 160ms ease;
 }
 
 .day-cell:hover {
@@ -292,7 +291,6 @@ input {
 }
 
 .day-cell.selected-week {
-  min-height: 142px;
   background: #fbfdfc;
 }
 
@@ -686,10 +684,6 @@ input {
   .day-cell {
     min-height: 82px;
     padding: 6px 4px;
-  }
-
-  .day-cell.selected-week {
-    min-height: 112px;
   }
 
   .day-numbers {
