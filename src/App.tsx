@@ -128,6 +128,8 @@ function App() {
   const selectedIndex = cells.findIndex((cell) => cell.isoDate === selectedDate);
   const selectedWeekIndex = selectedIndex >= 0 ? Math.floor(selectedIndex / 7) : -1;
   const selectedDateObject = parseISODate(selectedDate);
+  const selectedDayOfWeek = selectedDateObject.getDay();
+  const isSelectedWeekend = selectedDayOfWeek === 0 || selectedDayOfWeek === 6;
   const selectedWeekdayName = vietnameseWeekdayFormatter.format(selectedDateObject);
   const selectedLunar = solarToLunar(selectedDateObject);
   const selectedDayCanChi = getDayCanChi(selectedDateObject);
@@ -307,7 +309,9 @@ function App() {
                 </div>
 
                 <div className="daily-hero-content">
-                  <strong className="daily-solar-number">{selectedDateObject.getDate()}</strong>
+                  <strong className={isSelectedWeekend ? "daily-solar-number weekend" : "daily-solar-number"}>
+                    {selectedDateObject.getDate()}
+                  </strong>
                   <span className="daily-weekday">{selectedWeekdayName}</span>
                   <p>
                     {selectedDayNames.length > 0

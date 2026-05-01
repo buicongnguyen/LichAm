@@ -510,6 +510,10 @@ input {
   line-height: 0.92;
 }
 
+.daily-solar-number.weekend {
+  color: #c3271f;
+}
+
 .daily-weekday {
   margin-top: 18px;
   font-size: clamp(1.8rem, 5vw, 3rem);
