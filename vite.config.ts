@@ -10,5 +10,9 @@ const githubPagesBase =
 
 export default defineConfig({
   base: githubPagesBase,
+  build: {
+    cssTarget: ["chrome64", "ios12", "safari12"],
+    target: ["chrome64", "ios12", "safari12"],
+  },
   plugins: [react()],
 });

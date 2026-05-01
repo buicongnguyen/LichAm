@@ -5,9 +5,41 @@ import { solarToLunar } from "./vietnameseLunar";
 const STORAGE_KEY = "lich-am.memory-days.v1";
 const NOTIFIED_KEY = "lich-am.notified-reminders.v1";
 
+function getStorage() {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: string) {
+  try {
+    getStorage()?.setItem(key, value);
+  } catch {
+    // Some in-app browsers temporarily block storage. The app should keep running.
+  }
+}
+
+function createId() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  const values = new Uint32Array(2);
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(values);
+  } else {
+    values[0] = Math.floor(Math.random() * 0xffffffff);
+    values[1] = Math.floor(Math.random() * 0xffffffff);
+  }
+
+  return `${Date.now().toString(36)}-${values[0].toString(36)}-${values[1].toString(36)}`;
+}
+
 export function loadMemoryDays(): MemoryDay[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = getStorage()?.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as MemoryDay[]) : [];
   } catch {
     return [];
@@ -15,7 +47,7 @@ export function loadMemoryDays(): MemoryDay[] {
 }
 
 export function saveMemoryDays(days: MemoryDay[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(days));
+  writeStorage(STORAGE_KEY, JSON.stringify(days));
 }
 
 export function createMemoryDay(input: {
@@ -31,7 +63,7 @@ export function createMemoryDay(input: {
   const lunar = solarToLunar(date);
 
   return {
-    id: crypto.randomUUID(),
+    id: createId(),
     title: input.title.trim(),
     sourceDate: input.sourceDate,
     calendarKind: input.calendarKind,
@@ -94,32 +126,43 @@ export function getReminderOffsets(memory: MemoryDay) {
 }
 
 export function getDueReminderKeys(memories: MemoryDay[], today: Date) {
-  return memories.flatMap((memory) => {
+  const dueReminders: Array<{
+    key: string;
+    memory: MemoryDay;
+    occurrence: Date;
+    offset: number;
+  }> = [];
+
+  memories.forEach((memory) => {
     const occurrence = findNextOccurrence(memory, today);
     if (!occurrence) {
-      return [];
+      return;
     }
 
     const gap = daysBetween(today, occurrence);
-    return getReminderOffsets(memory)
+    getReminderOffsets(memory)
       .filter((offset) => offset === gap)
-      .map((offset) => ({
-        key: `${memory.id}:${toISODate(occurrence)}:${offset}`,
-        memory,
-        occurrence,
-        offset,
-      }));
+      .forEach((offset) => {
+        dueReminders.push({
+          key: `${memory.id}:${toISODate(occurrence)}:${offset}`,
+          memory,
+          occurrence,
+          offset,
+        });
+      });
   });
+
+  return dueReminders;
 }
 
 export function loadNotifiedKeys(): string[] {
   try {
-    return JSON.parse(localStorage.getItem(NOTIFIED_KEY) ?? "[]") as string[];
+    return JSON.parse(getStorage()?.getItem(NOTIFIED_KEY) ?? "[]") as string[];
   } catch {
     return [];
   }
 }
 
 export function saveNotifiedKeys(keys: string[]) {
-  localStorage.setItem(NOTIFIED_KEY, JSON.stringify(keys.slice(-200)));
+  writeStorage(NOTIFIED_KEY, JSON.stringify(keys.slice(-200)));
 }
