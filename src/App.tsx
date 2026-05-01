@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
+  CalendarCheck,
   CalendarPlus,
   CalendarDays,
   CalendarRange,
@@ -24,6 +25,15 @@ import {
   saveMemoryDays,
 } from "./lib/memoryDays";
 import { createGoogleCalendarUrl, downloadCalendarFile, shareOrDownloadCalendarFile } from "./lib/ics";
+import {
+  getDayCanChi,
+  getGoodHours,
+  getHourCanChi,
+  getMonthCanChi,
+  getSolarTerm,
+  getYearCanChi,
+  lunarMonthName,
+} from "./lib/lunarTime";
 import { solarToLunar } from "./lib/vietnameseLunar";
 
 const today = new Date();
@@ -33,7 +43,7 @@ const vietnameseMonthFormatter = new Intl.DateTimeFormat("vi-VN", { month: "long
 const vietnameseShortMonthFormatter = new Intl.DateTimeFormat("vi-VN", { month: "short" });
 const vietnameseWeekdayFormatter = new Intl.DateTimeFormat("vi-VN", { weekday: "long" });
 
-type ViewMode = "month" | "year";
+type ViewMode = "day" | "month" | "year";
 
 type MemoryFormState = {
   title: string;
@@ -107,7 +117,7 @@ function App() {
   const [memoryDays, setMemoryDays] = useState<MemoryDay[]>(() => loadMemoryDays());
   const [isAddingMemory, setIsAddingMemory] = useState(false);
   const [form, setForm] = useState<MemoryFormState>(() => createInitialForm(todayIso, "VN"));
-  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [viewMode, setViewMode] = useState<ViewMode>("day");
 
   useEffect(() => {
     saveMemoryDays(memoryDays);
@@ -120,6 +130,13 @@ function App() {
   const selectedDateObject = parseISODate(selectedDate);
   const selectedWeekdayName = vietnameseWeekdayFormatter.format(selectedDateObject);
   const selectedLunar = solarToLunar(selectedDateObject);
+  const selectedDayCanChi = getDayCanChi(selectedDateObject);
+  const selectedHourForCanChi = selectedDate === todayIso ? new Date().getHours() : 0;
+  const selectedHourCanChi = getHourCanChi(selectedDayCanChi.stemIndex, selectedHourForCanChi);
+  const selectedGoodHours = getGoodHours(selectedDayCanChi.branchIndex);
+  const selectedSolarTerm = getSolarTerm(selectedDateObject);
+  const selectedYearCanChi = getYearCanChi(selectedLunar.year);
+  const selectedMonthCanChi = getMonthCanChi(selectedLunar);
   const selectedDayNames = [
     selectedLunar.day === 1 ? "Mùng 1 âm lịch" : null,
     selectedLunar.day === 15 ? "Rằm" : null,
@@ -160,9 +177,17 @@ function App() {
     setMonthDate((current) => new Date(current.getFullYear() + offset, current.getMonth(), 1));
   }
 
+  function selectDate(date: Date) {
+    setSelectedDate(toISODate(date));
+    setMonthDate(normalizeMonth(date));
+  }
+
+  function changeDay(offset: number) {
+    selectDate(addDays(selectedDateObject, offset));
+  }
+
   function jumpToToday() {
-    setSelectedDate(todayIso);
-    setMonthDate(normalizeMonth(today));
+    selectDate(today);
   }
 
   function openMemoryForm(date = selectedDate) {
@@ -194,7 +219,7 @@ function App() {
   function onSelectYearCell(cell: CalendarCell) {
     setSelectedDate(cell.isoDate);
     setMonthDate(normalizeMonth(cell.date));
-    setViewMode("month");
+    setViewMode("day");
   }
 
   function saveMemoryDaysToPhoneCalendar() {
@@ -230,22 +255,91 @@ function App() {
             <Plus aria-hidden="true" />
             <span>Ngày ghi nhớ</span>
           </button>
-          <button
-            className="view-switch-button"
-            type="button"
-            aria-label={viewMode === "month" ? "Mở bảng năm" : "Trở về lịch tháng"}
-            onClick={() => setViewMode((current) => (current === "month" ? "year" : "month"))}
-          >
-            <CalendarRange aria-hidden="true" />
-            <span>{viewMode === "month" ? "Bảng năm" : "Tháng"}</span>
-          </button>
+          <div className="view-tabs" role="tablist" aria-label="Chế độ lịch">
+            <button
+              className={viewMode === "day" ? "view-tab-button active" : "view-tab-button"}
+              type="button"
+              onClick={() => setViewMode("day")}
+            >
+              <CalendarCheck aria-hidden="true" />
+              <span>Ngày</span>
+            </button>
+            <button
+              className={viewMode === "month" ? "view-tab-button active" : "view-tab-button"}
+              type="button"
+              onClick={() => setViewMode("month")}
+            >
+              <CalendarDays aria-hidden="true" />
+              <span>Tháng</span>
+            </button>
+            <button
+              className={viewMode === "year" ? "view-tab-button active" : "view-tab-button"}
+              type="button"
+              onClick={() => setViewMode("year")}
+            >
+              <CalendarRange aria-hidden="true" />
+              <span>Năm</span>
+            </button>
+          </div>
         </div>
       </header>
 
       <section className={viewMode === "year" ? "workspace year-workspace" : "workspace"}>
         <div className="calendar-surface">
           <LotusFrame />
-          {viewMode === "month" ? (
+          {viewMode === "day" ? (
+            <div className="daily-page">
+              <div className="daily-hero">
+                <div className="daily-toolbar">
+                  <button className="icon-button" type="button" onClick={() => changeDay(-1)} aria-label="Ngày trước">
+                    <ChevronLeft aria-hidden="true" />
+                  </button>
+                  <div className="daily-month-title">
+                    <strong>{vietnameseMonthFormatter.format(selectedDateObject)}</strong>
+                    <span>{selectedDate}</span>
+                  </div>
+                  <button className="icon-button" type="button" onClick={() => changeDay(1)} aria-label="Ngày sau">
+                    <ChevronRight aria-hidden="true" />
+                  </button>
+                  <button className="today-button" type="button" onClick={jumpToToday}>
+                    Hôm nay
+                  </button>
+                </div>
+
+                <div className="daily-hero-content">
+                  <strong className="daily-solar-number">{selectedDateObject.getDate()}</strong>
+                  <span className="daily-weekday">{selectedWeekdayName}</span>
+                  <p>
+                    {selectedDayNames.length > 0
+                      ? selectedDayNames.join(" · ")
+                      : `Âm lịch ${selectedLunar.day}/${selectedLunar.month}`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="daily-good-hours">
+                <strong>Giờ tốt:</strong>
+                <span>{selectedGoodHours.map((hour) => hour.label).join(", ")}</span>
+              </div>
+
+              <div className="daily-lunar-board">
+                <div className="daily-lunar-date">
+                  <span>
+                    Tháng {lunarMonthName(selectedLunar.month)}
+                    {selectedLunar.isLeap ? " nhuận" : ""}
+                  </span>
+                  <strong>{selectedLunar.day}</strong>
+                  <small>Năm {selectedYearCanChi}</small>
+                </div>
+                <div className="daily-lunar-meta">
+                  <h2>Tháng {selectedMonthCanChi}</h2>
+                  <p>Ngày {selectedDayCanChi.label}</p>
+                  <p>Giờ {selectedHourCanChi}</p>
+                  <p>Tiết {selectedSolarTerm.label}</p>
+                </div>
+              </div>
+            </div>
+          ) : viewMode === "month" ? (
             <>
               <div className="calendar-toolbar">
                 <button className="icon-button" type="button" onClick={() => changeMonth(-1)} aria-label="Tháng trước">

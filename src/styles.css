@@ -95,6 +95,48 @@ button {
   justify-content: flex-end;
 }
 
+.view-tabs {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.view-tab-button {
+  min-height: 42px;
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.82);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-weight: 760;
+}
+
+.view-tab-button:last-child {
+  border-right: 0;
+}
+
+.view-tab-button.active {
+  color: #12322e;
+  background: #f2d46b;
+}
+
+.view-tab-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.view-tab-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .settings-menu {
   position: fixed;
   left: max(14px, env(safe-area-inset-left));
@@ -380,6 +422,176 @@ input {
 .calendar-toolbar {
   gap: 10px;
   margin-bottom: 14px;
+}
+
+.daily-page {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: 1px solid #d8e1de;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.daily-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 430px;
+  padding: 14px;
+  color: #ffffff;
+  background:
+    linear-gradient(180deg, rgba(28, 92, 147, 0.92) 0 21%, rgba(28, 92, 147, 0) 21%),
+    linear-gradient(180deg, rgba(8, 29, 35, 0.18), rgba(8, 29, 35, 0.42)),
+    linear-gradient(156deg, #3b73c7 0 22%, #9db49d 22% 45%, #476e67 45% 62%, #1f8179 62% 100%);
+}
+
+.daily-hero::before {
+  position: absolute;
+  inset: 20% -10% 0;
+  content: "";
+  background:
+    linear-gradient(145deg, transparent 0 30%, rgba(26, 70, 57, 0.56) 30% 43%, transparent 43%),
+    linear-gradient(35deg, transparent 0 34%, rgba(19, 61, 55, 0.64) 34% 48%, transparent 48%),
+    linear-gradient(180deg, transparent 0 55%, rgba(6, 89, 85, 0.56) 55% 100%);
+  opacity: 0.86;
+}
+
+.daily-toolbar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.daily-toolbar .icon-button {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.daily-month-title {
+  min-width: 0;
+  text-align: center;
+}
+
+.daily-month-title strong,
+.daily-month-title span {
+  display: block;
+}
+
+.daily-month-title strong {
+  overflow: hidden;
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.daily-month-title span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.82rem;
+}
+
+.daily-hero-content {
+  position: relative;
+  z-index: 1;
+  min-height: 330px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  text-shadow: 0 3px 18px rgba(3, 20, 22, 0.45);
+}
+
+.daily-solar-number {
+  font-size: clamp(5.2rem, 15vw, 9.4rem);
+  line-height: 0.92;
+}
+
+.daily-weekday {
+  margin-top: 18px;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 850;
+  text-transform: capitalize;
+}
+
+.daily-hero-content p {
+  max-width: 760px;
+  margin: 28px 0 0;
+  font-size: clamp(1.08rem, 3vw, 1.7rem);
+  font-weight: 820;
+}
+
+.daily-good-hours {
+  display: grid;
+  gap: 6px;
+  border-bottom: 1px solid #17211f;
+  padding: 18px 20px;
+  color: #0f1f1d;
+  background: #edf6f3;
+  text-align: center;
+}
+
+.daily-good-hours strong {
+  font-size: clamp(1.08rem, 2vw, 1.7rem);
+}
+
+.daily-good-hours span {
+  font-size: clamp(1rem, 2vw, 1.45rem);
+  font-weight: 760;
+}
+
+.daily-lunar-board {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 18px;
+  padding: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 250, 240, 0.9)),
+    #ffffff;
+}
+
+.daily-lunar-date,
+.daily-lunar-meta {
+  min-width: 0;
+  text-align: center;
+}
+
+.daily-lunar-date span,
+.daily-lunar-date small,
+.daily-lunar-meta p {
+  color: #3d4a47;
+}
+
+.daily-lunar-date span {
+  display: block;
+  font-size: clamp(1.15rem, 2.3vw, 1.85rem);
+  font-weight: 840;
+}
+
+.daily-lunar-date strong {
+  display: block;
+  color: #d92f25;
+  font-size: clamp(4.5rem, 14vw, 8rem);
+  line-height: 1;
+}
+
+.daily-lunar-date small {
+  display: block;
+  font-size: clamp(1rem, 2vw, 1.45rem);
+}
+
+.daily-lunar-meta h2 {
+  margin: 0 0 20px;
+  color: #101817;
+  font-size: clamp(1.25rem, 2.4vw, 1.9rem);
+}
+
+.daily-lunar-meta p {
+  margin: 13px 0;
+  font-size: clamp(1rem, 2.1vw, 1.45rem);
 }
 
 .calendar-toolbar .icon-button,
@@ -964,8 +1176,7 @@ input {
     display: none;
   }
 
-  .primary-action,
-  .view-switch-button {
+  .primary-action {
     width: 38px;
     min-width: 38px;
     min-height: 38px;
@@ -977,14 +1188,65 @@ input {
   }
 
   .primary-action span,
-  .view-switch-button span {
+  .view-tab-button span {
     display: none;
   }
 
-  .view-switch-button svg,
+  .view-tab-button {
+    min-width: 34px;
+    min-height: 38px;
+    padding: 0 8px;
+  }
+
+  .view-tab-button svg,
   .primary-action svg {
     width: 18px;
     height: 18px;
+  }
+
+  .daily-hero {
+    min-height: 390px;
+    padding: 8px;
+  }
+
+  .daily-toolbar {
+    grid-template-columns: 38px minmax(0, 1fr) 38px auto;
+    gap: 6px;
+  }
+
+  .daily-toolbar .icon-button {
+    width: 38px;
+    min-height: 38px;
+  }
+
+  .daily-month-title strong {
+    font-size: 1.02rem;
+  }
+
+  .daily-month-title span {
+    display: none;
+  }
+
+  .daily-hero-content {
+    min-height: 315px;
+  }
+
+  .daily-hero-content p {
+    margin-top: 22px;
+  }
+
+  .daily-good-hours {
+    padding: 14px 10px;
+  }
+
+  .daily-lunar-board {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 16px 10px;
+  }
+
+  .daily-lunar-meta h2 {
+    margin-bottom: 14px;
   }
 
   .calendar-surface {
