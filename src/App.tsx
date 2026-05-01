@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
+  CalendarPlus,
   CalendarDays,
   CalendarRange,
   ChevronLeft,
@@ -13,7 +14,7 @@ import { LotusFrame } from "./components/LotusFrame";
 import { MoonPhaseIcon } from "./components/MoonPhaseIcon";
 import type { CalendarCell, CalendarKind, CountryCode, MemoryDay } from "./types";
 import { buildCalendarMonth } from "./lib/calendar";
-import { parseISODate, toISODate } from "./lib/date";
+import { addDays, parseISODate, toISODate } from "./lib/date";
 import { countryNames } from "./lib/holidays";
 import { getMoonPhase } from "./lib/moonPhase";
 import {
@@ -22,7 +23,7 @@ import {
   loadMemoryDays,
   saveMemoryDays,
 } from "./lib/memoryDays";
-import { downloadCalendarFile } from "./lib/ics";
+import { createGoogleCalendarUrl, downloadCalendarFile, shareOrDownloadCalendarFile } from "./lib/ics";
 import { solarToLunar } from "./lib/vietnameseLunar";
 
 const today = new Date();
@@ -73,6 +74,32 @@ function calendarKindLabel(kind: CalendarKind) {
   return kind === "lunar" ? "Âm lịch" : "Dương lịch";
 }
 
+function buildCalendarExportItems(memoryDays: MemoryDay[]) {
+  const startDate = new Date();
+  const endDate = new Date(startDate.getFullYear() + 5, startDate.getMonth(), startDate.getDate());
+  const exportItems: Array<{ memory: MemoryDay; occurrence: Date }> = [];
+
+  memoryDays.forEach((memory) => {
+    let searchFrom = startDate;
+
+    for (let index = 0; index < 6; index += 1) {
+      const occurrence = findNextOccurrence(memory, searchFrom, 430);
+      if (!occurrence || occurrence > endDate) {
+        break;
+      }
+
+      exportItems.push({ memory, occurrence });
+      if (!memory.repeatYearly) {
+        break;
+      }
+
+      searchFrom = addDays(occurrence, 1);
+    }
+  });
+
+  return exportItems.sort((a, b) => a.occurrence.getTime() - b.occurrence.getTime());
+}
+
 function App() {
   const [country, setCountry] = useState<CountryCode>("VN");
   const [monthDate, setMonthDate] = useState(() => normalizeMonth(today));
@@ -111,7 +138,7 @@ function App() {
     [country, memoryDays, monthDate],
   );
 
-  const upcomingMemories = useMemo(
+  const allUpcomingMemories = useMemo(
     () =>
       memoryDays
         .map((memory) => ({
@@ -119,10 +146,11 @@ function App() {
           occurrence: findNextOccurrence(memory, new Date()),
         }))
         .filter((item): item is { memory: MemoryDay; occurrence: Date } => Boolean(item.occurrence))
-        .sort((a, b) => a.occurrence.getTime() - b.occurrence.getTime())
-        .slice(0, 6),
+        .sort((a, b) => a.occurrence.getTime() - b.occurrence.getTime()),
     [memoryDays],
   );
+  const upcomingMemories = allUpcomingMemories.slice(0, 6);
+  const calendarExportItems = useMemo(() => buildCalendarExportItems(memoryDays), [memoryDays]);
 
   function changeMonth(offset: number) {
     setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
@@ -167,6 +195,23 @@ function App() {
     setSelectedDate(cell.isoDate);
     setMonthDate(normalizeMonth(cell.date));
     setViewMode("month");
+  }
+
+  function saveMemoryDaysToPhoneCalendar() {
+    if (calendarExportItems.length === 0) {
+      return;
+    }
+
+    void shareOrDownloadCalendarFile(calendarExportItems);
+  }
+
+  function openNextMemoryInGoogleCalendar() {
+    const nextMemory = allUpcomingMemories[0];
+    if (!nextMemory) {
+      return;
+    }
+
+    window.open(createGoogleCalendarUrl(nextMemory.memory, nextMemory.occurrence), "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -421,6 +466,26 @@ function App() {
               ))}
             </select>
           </label>
+          <div className="settings-actions">
+            <button
+              className="settings-action-button"
+              type="button"
+              disabled={calendarExportItems.length === 0}
+              onClick={saveMemoryDaysToPhoneCalendar}
+            >
+              <Download aria-hidden="true" />
+              <span>Lưu lịch điện thoại</span>
+            </button>
+            <button
+              className="settings-action-button"
+              type="button"
+              disabled={allUpcomingMemories.length === 0}
+              onClick={openNextMemoryInGoogleCalendar}
+            >
+              <CalendarPlus aria-hidden="true" />
+              <span>Google Calendar</span>
+            </button>
+          </div>
         </div>
       </details>
 

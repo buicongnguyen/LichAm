@@ -131,7 +131,9 @@ button {
   bottom: calc(100% + 8px);
   left: 0;
   z-index: 4;
-  width: min(246px, calc(100vw - 28px));
+  display: grid;
+  gap: 12px;
+  width: min(286px, calc(100vw - 28px));
   border: 1px solid #d8e1de;
   border-radius: 8px;
   padding: 12px;
@@ -150,6 +152,45 @@ button {
 
 .settings-panel select {
   width: 100%;
+}
+
+.settings-actions {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #edf0ef;
+  padding-top: 10px;
+}
+
+.settings-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid #c9d4d1;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #16443d;
+  background: #fffaf0;
+  font-size: 0.88rem;
+  font-weight: 760;
+}
+
+.settings-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.settings-action-button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.settings-action-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 select,
