@@ -31,9 +31,12 @@ type SolarTermRule = {
 
 const solarRules: SolarRule[] = [
   { country: "VN", month: 1, day: 1, label: "Tết Dương lịch" },
+  { country: "VN", month: 3, day: 8, label: "Ngày Quốc tế Phụ nữ", type: "observance" },
   { country: "VN", month: 4, day: 30, label: "Ngày Thống nhất" },
   { country: "VN", month: 5, day: 1, label: "Quốc tế Lao động" },
   { country: "VN", month: 9, day: 2, label: "Quốc khánh" },
+  { country: "VN", month: 11, day: 20, label: "Ngày Nhà giáo Việt Nam", type: "observance" },
+  { country: "VN", month: 12, day: 25, label: "Noel / Giáng sinh", type: "observance" },
   { country: "US", month: 1, day: 1, label: "New Year's Day" },
   { country: "US", month: 7, day: 4, label: "Independence Day" },
   { country: "US", month: 11, day: 11, label: "Veterans Day" },
