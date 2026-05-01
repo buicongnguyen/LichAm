@@ -15,6 +15,8 @@ export interface MemoryDay {
   calendarKind: CalendarKind;
   sourceDate: string;
   country: CountryCode;
+  remindOnSolarDate?: boolean;
+  remindOnLunarDate?: boolean;
   repeatYearly: boolean;
   remindWeekBefore: boolean;
   remindDayBefore: boolean;

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { LotusFrame } from "./components/LotusFrame";
 import { MoonPhaseIcon } from "./components/MoonPhaseIcon";
-import type { CalendarCell, CalendarKind, CountryCode, MemoryDay } from "./types";
+import type { CalendarCell, CountryCode, MemoryDay } from "./types";
 import { buildCalendarMonth } from "./lib/calendar";
 import { addDays, parseISODate, toISODate } from "./lib/date";
 import { countryNames } from "./lib/holidays";
@@ -22,6 +22,7 @@ import {
   createMemoryDay,
   findNextOccurrence,
   loadMemoryDays,
+  memoryCalendarLabel,
   saveMemoryDays,
 } from "./lib/memoryDays";
 import { createGoogleCalendarUrl, downloadCalendarFile, shareOrDownloadCalendarFile } from "./lib/ics";
@@ -48,8 +49,9 @@ type ViewMode = "day" | "month" | "year";
 type MemoryFormState = {
   title: string;
   sourceDate: string;
-  calendarKind: CalendarKind;
   country: CountryCode;
+  remindOnSolarDate: boolean;
+  remindOnLunarDate: boolean;
   repeatYearly: boolean;
   remindWeekBefore: boolean;
   remindDayBefore: boolean;
@@ -59,8 +61,9 @@ function createInitialForm(selectedDate: string, country: CountryCode): MemoryFo
   return {
     title: "",
     sourceDate: selectedDate,
-    calendarKind: "solar",
     country,
+    remindOnSolarDate: true,
+    remindOnLunarDate: true,
     repeatYearly: true,
     remindWeekBefore: true,
     remindDayBefore: true,
@@ -80,10 +83,6 @@ function normalizeMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-function calendarKindLabel(kind: CalendarKind) {
-  return kind === "lunar" ? "Âm lịch" : "Dương lịch";
-}
-
 function buildCalendarExportItems(memoryDays: MemoryDay[]) {
   const startDate = new Date();
   const endDate = new Date(startDate.getFullYear() + 5, startDate.getMonth(), startDate.getDate());
@@ -92,7 +91,7 @@ function buildCalendarExportItems(memoryDays: MemoryDay[]) {
   memoryDays.forEach((memory) => {
     let searchFrom = startDate;
 
-    for (let index = 0; index < 6; index += 1) {
+    for (let index = 0; index < 12; index += 1) {
       const occurrence = findNextOccurrence(memory, searchFrom, 430);
       if (!occurrence || occurrence > endDate) {
         break;
@@ -199,7 +198,7 @@ function App() {
 
   function submitMemory(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!form.title.trim()) {
+    if (!form.title.trim() || (!form.remindOnSolarDate && !form.remindOnLunarDate)) {
       return;
     }
 
@@ -209,6 +208,22 @@ function App() {
 
   function deleteMemory(id: string) {
     setMemoryDays((current) => current.filter((memory) => memory.id !== id));
+  }
+
+  function setMemoryDateMode(mode: "solar" | "lunar", checked: boolean) {
+    setForm((current) => {
+      if (mode === "solar") {
+        return {
+          ...current,
+          remindOnSolarDate: checked || !current.remindOnLunarDate,
+        };
+      }
+
+      return {
+        ...current,
+        remindOnLunarDate: checked || !current.remindOnSolarDate,
+      };
+    });
   }
 
   function onSelectCell(cell: CalendarCell) {
@@ -517,7 +532,7 @@ function App() {
                   <div>
                     <strong>{memory.title}</strong>
                     <span>
-                      {toISODate(occurrence)} · {calendarKindLabel(memory.calendarKind)}
+                      {toISODate(occurrence)} · {memoryCalendarLabel(memory)}
                     </span>
                   </div>
                   <div className="row-actions">
@@ -616,36 +631,37 @@ function App() {
               />
             </label>
 
-            <div className="two-column">
-              <label>
-                Loại lịch
-                <select
-                  value={form.calendarKind}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, calendarKind: event.target.value as CalendarKind }))
-                  }
-                >
-                  <option value="solar">Dương lịch</option>
-                  <option value="lunar">Âm lịch</option>
-                </select>
-              </label>
-
-              <label>
-                Quốc gia
-                <select
-                  value={form.country}
-                  onChange={(event) => setForm((current) => ({ ...current, country: event.target.value as CountryCode }))}
-                >
-                  {Object.entries(countryNames).map(([code, label]) => (
-                    <option key={code} value={code}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            <label>
+              Quốc gia
+              <select
+                value={form.country}
+                onChange={(event) => setForm((current) => ({ ...current, country: event.target.value as CountryCode }))}
+              >
+                {Object.entries(countryNames).map(([code, label]) => (
+                  <option key={code} value={code}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <div className="check-grid">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.remindOnSolarDate}
+                  onChange={(event) => setMemoryDateMode("solar", event.target.checked)}
+                />
+                Nhắc ngày dương
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.remindOnLunarDate}
+                  onChange={(event) => setMemoryDateMode("lunar", event.target.checked)}
+                />
+                Nhắc ngày âm
+              </label>
               <label>
                 <input
                   type="checkbox"

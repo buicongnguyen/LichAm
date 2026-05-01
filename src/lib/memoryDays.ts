@@ -53,25 +53,29 @@ export function saveMemoryDays(days: MemoryDay[]) {
 export function createMemoryDay(input: {
   title: string;
   sourceDate: string;
-  calendarKind: CalendarKind;
   country: CountryCode;
+  remindOnSolarDate: boolean;
+  remindOnLunarDate: boolean;
   repeatYearly: boolean;
   remindWeekBefore: boolean;
   remindDayBefore: boolean;
 }): MemoryDay {
   const date = parseISODate(input.sourceDate);
   const lunar = solarToLunar(date);
+  const calendarKind: CalendarKind = input.remindOnLunarDate && !input.remindOnSolarDate ? "lunar" : "solar";
 
   return {
     id: createId(),
     title: input.title.trim(),
     sourceDate: input.sourceDate,
-    calendarKind: input.calendarKind,
+    calendarKind,
     country: input.country,
+    remindOnSolarDate: input.remindOnSolarDate,
+    remindOnLunarDate: input.remindOnLunarDate,
     repeatYearly: input.repeatYearly,
     remindWeekBefore: input.remindWeekBefore,
     remindDayBefore: input.remindDayBefore,
-    lunarDate: input.calendarKind === "lunar" ? lunar : undefined,
+    lunarDate: input.remindOnLunarDate ? lunar : undefined,
     createdAt: new Date().toISOString(),
   };
 }
@@ -85,21 +89,49 @@ function lunarEquals(a: LunarDate, b: LunarDate, repeatYearly: boolean) {
   );
 }
 
+export function memoryUsesSolarDate(memory: MemoryDay) {
+  return memory.remindOnSolarDate ?? memory.calendarKind === "solar";
+}
+
+export function memoryUsesLunarDate(memory: MemoryDay) {
+  return memory.remindOnLunarDate ?? memory.calendarKind === "lunar";
+}
+
+export function memoryCalendarLabel(memory: MemoryDay) {
+  const usesSolar = memoryUsesSolarDate(memory);
+  const usesLunar = memoryUsesLunarDate(memory);
+
+  if (usesSolar && usesLunar) {
+    return "Dương + âm";
+  }
+
+  return usesLunar ? "Âm lịch" : "Dương lịch";
+}
+
+function solarMatches(memory: MemoryDay, cell: Pick<CalendarCell, "isoDate" | "date">) {
+  if (memory.repeatYearly) {
+    const source = parseISODate(memory.sourceDate);
+    return source.getMonth() === cell.date.getMonth() && source.getDate() === cell.date.getDate();
+  }
+
+  return memory.sourceDate === cell.isoDate;
+}
+
+function lunarMatches(memory: MemoryDay, cell: Pick<CalendarCell, "lunar">) {
+  const lunarDate = memory.lunarDate ?? solarToLunar(parseISODate(memory.sourceDate));
+  return lunarEquals(lunarDate, cell.lunar, memory.repeatYearly);
+}
+
 export function memoryMatchesCell(memory: MemoryDay, cell: Pick<CalendarCell, "isoDate" | "date" | "lunar">) {
-  if (memory.calendarKind === "solar") {
-    if (memory.repeatYearly) {
-      const source = parseISODate(memory.sourceDate);
-      return source.getMonth() === cell.date.getMonth() && source.getDate() === cell.date.getDate();
-    }
-
-    return memory.sourceDate === cell.isoDate;
+  if (memoryUsesSolarDate(memory) && solarMatches(memory, cell)) {
+    return true;
   }
 
-  if (!memory.lunarDate) {
-    return false;
+  if (memoryUsesLunarDate(memory) && lunarMatches(memory, cell)) {
+    return true;
   }
 
-  return lunarEquals(memory.lunarDate, cell.lunar, memory.repeatYearly);
+  return false;
 }
 
 export function findNextOccurrence(memory: MemoryDay, fromDate: Date, searchDays = 430) {

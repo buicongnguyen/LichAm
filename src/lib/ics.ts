@@ -1,5 +1,6 @@
 import type { MemoryDay } from "../types";
 import { addDays, yyyymmdd } from "./date";
+import { memoryCalendarLabel } from "./memoryDays";
 
 export type CalendarExportItem = {
   memory: MemoryDay;
@@ -26,7 +27,7 @@ function createCalendarEvent({ memory, occurrence }: CalendarExportItem) {
     ...createAlarms(memory),
   ];
   const endDate = addDays(occurrence, 1);
-  const calendarKind = memory.calendarKind === "lunar" ? "Âm lịch" : "Dương lịch";
+  const calendarKind = memoryCalendarLabel(memory);
 
   return [
     "BEGIN:VEVENT",
